@@ -7,7 +7,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   itemsPerRound: 7,
-  roundsPerGame: 3,
+  roundsPerGame: 4,
   roundSeconds: 90,
   manualScoringDefault: true,
 };

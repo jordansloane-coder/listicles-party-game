@@ -4,9 +4,9 @@ function normalize(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
-// Scores every player's 7-item list for a round:
+// Scores every player's list for a round:
 // - blank entries score 0 and don't count toward duplicate detection
-// - an item written by exactly one player is "unique": 1 point, or 2 if it
+// - an item written by exactly one player is "unique": 1 point, or 3 if it
 //   starts with the round's bonus letter
 // - an item written by two or more players is a "duplicate": 0 points,
 //   regardless of the bonus letter
@@ -39,7 +39,7 @@ export function scoreRound(
       const writers = writerCount.get(norm)?.size ?? 0;
       if (writers >= 2) return { text: raw, points: 0, status: 'duplicate' };
       const startsWithBonus = norm.startsWith(bonus);
-      return { text: raw, points: startsWithBonus ? 2 : 1, status: 'unique' };
+      return { text: raw, points: startsWithBonus ? 3 : 1, status: 'unique' };
     });
     const subtotal = scored.reduce((sum, item) => sum + item.points, 0);
     return { playerId: player.id, items: scored, subtotal };

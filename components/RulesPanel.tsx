@@ -31,45 +31,120 @@ export default function RulesPanel({ onClose }: Props) {
         className="animate-pop-in w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-extrabold pr-12">How to Play</h2>
+        <div className="pr-12">
+          <h2 className="text-xl font-extrabold">BuzzFeed Listicles</h2>
+          <p className="text-xs opacity-60 mt-1">Complete Rules</p>
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm font-semibold bg-background rounded-xl p-3">
+            <span className="opacity-50">Players</span>
+            <span>2–8</span>
+            <span className="opacity-50">Ages</span>
+            <span>14+</span>
+            <span className="opacity-50">Game length</span>
+            <span>4 rounds</span>
+            <span className="opacity-50">Round timer</span>
+            <span>90 seconds</span>
+          </div>
+          <p className="text-xs opacity-50 mt-2">
+            All four numbers above are the defaults — items per round, round count, and timer length are all
+            adjustable in Settings.
+          </p>
+        </div>
 
-        <p className="text-xs opacity-50 -mt-3">
-          This describes how <em>this app</em> plays, not a reproduction of any official rulebook — check your
-          physical game&apos;s box/insert if you want the original wording.
+        <Section title="Setup">
+          <p>Give every player an answer pad and pencil. A complete game consists of 4 rounds.</p>
+        </Section>
+
+        <Section title="1. Draw a Category Card">
+          <p>Draw one Category Card. Read the category aloud and leave it visible so everyone can see it.</p>
+        </Section>
+
+        <Section title="2. Draw a Bonus Letter Card">
+          <p>Draw one Bonus Letter Card and reveal it to everyone. Answers beginning with this letter can earn extra points during the round.</p>
+        </Section>
+
+        <Section title="3. Start the Timer">
+          <p>Start the 90-second timer. Everyone plays simultaneously, writing down answers that fit the category.</p>
+          <p><strong>Important:</strong> you may write no more than 7 answers. If you finish before time&apos;s up, go back and change or replace answers until it expires. When the timer runs out, stop writing immediately.</p>
+        </Section>
+
+        <Section title="The Goal">
+          <p>The trick isn&apos;t simply coming up with correct answers — you want answers that other players don&apos;t think of. If another player writes the same answer as you, it&apos;s eliminated from scoring. Unusual but legitimate answers are valuable.</p>
+        </Section>
+
+        <Section title="Comparing Answers">
+          <p>After time expires, players take turns reading their answers aloud and comparing lists.</p>
+          <p><strong>Matching answers:</strong> if two or more players wrote the same answer, that answer scores 0 points for everyone who wrote it.</p>
+          <p><strong>Challenging an answer:</strong> if someone believes an answer doesn&apos;t legitimately fit the category, the group decides whether it counts — majority rules. Rejected answers score 0.</p>
+        </Section>
+
+        <Section title="Scoring">
+          <table className="w-full text-sm mt-1">
+            <tbody>
+              <tr className="border-b border-black/10">
+                <td className="py-1.5 pr-2">Unique answer beginning with the Bonus Letter</td>
+                <td className="py-1.5 text-right font-bold whitespace-nowrap">3 points</td>
+              </tr>
+              <tr className="border-b border-black/10">
+                <td className="py-1.5 pr-2">Unique answer beginning with any other letter</td>
+                <td className="py-1.5 text-right font-bold whitespace-nowrap">1 point</td>
+              </tr>
+              <tr>
+                <td className="py-1.5 pr-2">Answer matching another player&apos;s answer</td>
+                <td className="py-1.5 text-right font-bold whitespace-nowrap">0 points</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="mt-3 rounded-xl bg-background p-3">
+            <p className="font-bold mb-1">Example</p>
+            <p>Category: &quot;Things You Find at a Wedding&quot; · Bonus Letter: S</p>
+            <ul className="list-disc pl-5 mt-1">
+              <li>Suit — nobody else wrote it → 3 points</li>
+              <li>Cake — nobody else wrote it → 1 point</li>
+              <li>Flowers — another player also wrote it → 0 points</li>
+            </ul>
+            <p className="mt-1 font-bold">Total: 4 points</p>
+          </div>
+        </Section>
+
+        <Section title="The BuzzFeed Die">
+          <p>After everyone&apos;s regular answers are scored, roll the BuzzFeed Die. It contains subjective modifiers: Hot, Basic, WTF, Ew, OMG, Trashy. Whatever&apos;s rolled becomes the bonus challenge for that round.</p>
+          <p><strong>Choosing an answer:</strong> each player picks one of their own scoring answers from that round that they think best fits the modifier — an answer eliminated for matching someone else&apos;s can&apos;t be nominated. Everyone reveals their pick.</p>
+          <p><strong>Choosing the winner:</strong> the group decides (voting if necessary) whose nominated answer best fits. That player gets +3 bonus points. A genuine tie means both tied players get the +3.</p>
+        </Section>
+
+        <Section title="End of the Round">
+          <p>Record everyone&apos;s score, discard the Category and Bonus Letter cards, and begin a new round. The BuzzFeed Die bonus happens every round.</p>
+        </Section>
+
+        <Section title="End of the Game">
+          <p>Play 4 rounds total, then add up each player&apos;s scores across all four. Highest total score wins!</p>
+        </Section>
+
+        <Section title="Quick Round Summary">
+          <ol className="list-decimal pl-5 flex flex-col gap-1">
+            <li>Draw a Category Card.</li>
+            <li>Draw a Bonus Letter Card.</li>
+            <li>Start the 90-second timer.</li>
+            <li>Everyone writes up to 7 answers.</li>
+            <li>Compare answers.</li>
+            <li>Cross out answers that match another player&apos;s.</li>
+            <li>Resolve questionable answers by majority vote.</li>
+            <li>Score unique answers (3 / 1 / 0 as above).</li>
+            <li>Roll the BuzzFeed Die.</li>
+            <li>Each player nominates a scoring answer that fits the modifier.</li>
+            <li>Choose/vote for the best one.</li>
+            <li>Winner gets +3 points.</li>
+            <li>Record scores and start the next round.</li>
+          </ol>
+          <p className="mt-1">After 4 rounds, the player with the most points wins.</p>
+        </Section>
+
+        <p className="text-xs opacity-40 -mt-1">
+          This app plays close to these rules, with some flexibility built in: rounds/items/timer are adjustable in
+          Settings and never a hard stop, and the die-bonus screen currently lets you pick the winning <em>player</em>
+          rather than walking through each person&apos;s nominated answer — the group can still do that part verbally.
         </p>
-
-        <Section title="1. Add players">
-          <p>Add everyone playing (1 or more). You can remove or add people any time from the Start screen.</p>
-        </Section>
-
-        <Section title="2. Start a round">
-          <p>Each round shows a random category and a random bonus letter. Don&apos;t like the category or letter? Reroll either one independently — passing the category leaves the letter alone, and vice versa. &quot;◀ Previous&quot; steps back through categories you&apos;ve passed on. Tap &quot;Start Timer&quot; whenever everyone&apos;s ready — nothing starts automatically.</p>
-        </Section>
-
-        <Section title="3. Write your answers">
-          <p>On paper (or in the app, your choice), everyone writes as many answers as the round calls for — items per round is adjustable in Settings, 7 by default. Answers that start with the bonus letter are worth extra.</p>
-        </Section>
-
-        <Section title="4. Score the round">
-          <p><strong>By hand (default):</strong> once time's up, enter each player's total for the round on the Scorecard screen — you tally uniques/duplicates yourselves from your paper lists.</p>
-          <p><strong>Digitally:</strong> uncheck &quot;Skip typing the list&quot; before starting the timer, and each player types their list into the phone afterward. The app scores it automatically: an answer only you wrote is worth 1 point (2 if it starts with the bonus letter); an answer two or more players wrote the same way is worth 0.</p>
-        </Section>
-
-        <Section title="5. Bonus die (optional)">
-          <p>After scoring, you can roll a die with six faces — Trashy, WTF, Ew, Hot, Basic, OMG — and decide together whose answer best fits. That player gets +3 bonus points. Skip it any time, before or after rolling — it&apos;s just a house-rule bonus, never required.</p>
-        </Section>
-
-        <Section title="6. Keep going, or call it">
-          <p>&quot;Rounds per game&quot; in Settings is just a label (&quot;Round 2 of 3&quot;) — never a hard stop. Play as many rounds as you want, then tap &quot;🏆 Show Me The Winner&quot; whenever you're actually done to rank everyone 1st to last. That result auto-saves to History. From there, play another game with the same players (scores reset) or start over with new players.</p>
-        </Section>
-
-        <Section title="Big Screen Mode">
-          <p>Tap &quot;🖥️ Big Screen Mode&quot; (or just rotate your phone to landscape) to show the category, bonus letter, and a big countdown full-screen — set the phone down where everyone can see it.</p>
-        </Section>
-
-        <Section title="Settings & History">
-          <p>Adjust items per round, rounds-per-game label, timer length, and whether digital entry is skipped by default — changes apply starting next round. History (also in Settings) keeps a running log of every finished game.</p>
-        </Section>
       </div>
     </div>
   );

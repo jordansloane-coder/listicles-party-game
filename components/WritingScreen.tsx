@@ -98,7 +98,7 @@ export default function WritingScreen({
         <div className="mt-4 inline-block rounded-full bg-sun/20 px-4 py-2 font-bold text-lg">
           ✨ Bonus letter: {bonusLetter}
         </div>
-        <p className="mt-1 text-sm opacity-60">Answers starting with {bonusLetter} score double!</p>
+        <p className="mt-1 text-sm opacity-60">Answers starting with {bonusLetter} are worth 3 points instead of 1!</p>
         {!everStarted && (
           <div className="mt-4 flex flex-col items-center gap-2 text-sm opacity-50">
             <div className="flex items-center justify-center gap-4">
