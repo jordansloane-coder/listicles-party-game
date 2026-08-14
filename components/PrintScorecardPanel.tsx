@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 interface Props {
   defaultItems: number;
@@ -48,6 +48,7 @@ export default function PrintScorecardPanel({ defaultItems, onClose }: Props) {
   const [copies, setCopies] = useState(4);
 
   return (
+    <Fragment>
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6 no-print" onClick={onClose}>
       <button
         onClick={onClose}
@@ -116,14 +117,15 @@ export default function PrintScorecardPanel({ defaultItems, onClose }: Props) {
           </div>
         </div>
       </div>
+    </div>
 
-      <div className="printable hidden print:block">
-        <div className="print-grid">
-          {Array.from({ length: copies }, (_, i) => i).map((i) => (
-            <ScoreCard key={i} rows={rows} />
-          ))}
-        </div>
+    <div className="printable hidden print:block">
+      <div className="print-grid">
+        {Array.from({ length: copies }, (_, i) => i).map((i) => (
+          <ScoreCard key={i} rows={rows} />
+        ))}
       </div>
     </div>
+    </Fragment>
   );
 }
