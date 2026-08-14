@@ -25,7 +25,8 @@ export interface RoundRecord {
   results: PlayerRoundResult[];
   manual: boolean;
   dieFace: DieFace | null;
-  diceBonusPlayerId: string | null;
+  diceNominations: Record<string, string>;
+  diceBonusPlayerIds: string[];
 }
 
 export type Phase =
@@ -51,7 +52,6 @@ export interface GameState {
   categoryHistory: string[];
   lastRoundWasManual: boolean;
   diceFace: DieFace | null;
-  diceBonusPlayerId: string | null;
   history: RoundRecord[];
   soundEnabled: boolean;
 }

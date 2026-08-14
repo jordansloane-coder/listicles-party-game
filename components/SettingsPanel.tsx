@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void;
   onOpenRules: () => void;
   onOpenHistory: () => void;
+  onOpenPrint: () => void;
 }
 
 function NumberField({
@@ -39,7 +40,7 @@ function NumberField({
   );
 }
 
-export default function SettingsPanel({ settings, onChange, onClose, onOpenRules, onOpenHistory }: Props) {
+export default function SettingsPanel({ settings, onChange, onClose, onOpenRules, onOpenHistory, onOpenPrint }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6"
@@ -102,6 +103,12 @@ export default function SettingsPanel({ settings, onChange, onClose, onOpenRules
             className="w-full rounded-2xl bg-card border-2 border-black/10 font-bold py-3 active:scale-95 transition-transform"
           >
             📜 Game History
+          </button>
+          <button
+            onClick={onOpenPrint}
+            className="w-full rounded-2xl bg-card border-2 border-black/10 font-bold py-3 active:scale-95 transition-transform"
+          >
+            🖨️ Printable Scorecards
           </button>
         </div>
       </div>

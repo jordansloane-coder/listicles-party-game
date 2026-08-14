@@ -19,6 +19,7 @@ import FinalScreen from '@/components/FinalScreen';
 import SettingsPanel from '@/components/SettingsPanel';
 import HistoryPanel from '@/components/HistoryPanel';
 import RulesPanel from '@/components/RulesPanel';
+import PrintScorecardPanel from '@/components/PrintScorecardPanel';
 
 function rankPlayers(players: Player[]): BankedGame['results'] {
   const sorted = [...players].sort((a, b) => b.totalScore - a.totalScore);
@@ -38,6 +39,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showPrint, setShowPrint] = useState(false);
 
   useEffect(() => {
     const saved = loadGameState();
@@ -182,11 +184,14 @@ export default function Home() {
           players={state.players}
           diceFace={state.diceFace}
           soundEnabled={state.soundEnabled}
+          currentRoundResults={state.currentRoundResults}
           onRoll={(face) => {
             unlockSound();
             dispatch({ type: 'ROLL_DICE', face });
           }}
-          onPickWinner={(playerId) => dispatch({ type: 'PICK_DICE_WINNER', playerId })}
+          onConfirmWinners={(playerIds, nominations) =>
+            dispatch({ type: 'CONFIRM_DICE_WINNERS', playerIds, nominations })
+          }
           onSkip={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
         />
       )}
@@ -226,6 +231,10 @@ export default function Home() {
             setShowSettings(false);
             setShowHistory(true);
           }}
+          onOpenPrint={() => {
+            setShowSettings(false);
+            setShowPrint(true);
+          }}
         />
       )}
 
@@ -241,6 +250,10 @@ export default function Home() {
       )}
 
       {showRules && <RulesPanel onClose={() => setShowRules(false)} />}
+
+      {showPrint && (
+        <PrintScorecardPanel defaultItems={settings.itemsPerRound} onClose={() => setShowPrint(false)} />
+      )}
     </div>
   );
 }

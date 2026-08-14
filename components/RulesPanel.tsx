@@ -36,17 +36,19 @@ export default function RulesPanel({ onClose }: Props) {
           <p className="text-xs opacity-60 mt-1">Complete Rules</p>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm font-semibold bg-background rounded-xl p-3">
             <span className="opacity-50">Players</span>
-            <span>2–8</span>
+            <span>2–8 (reference only)</span>
             <span className="opacity-50">Ages</span>
-            <span>14+</span>
+            <span>14+ (reference only)</span>
             <span className="opacity-50">Game length</span>
             <span>4 rounds</span>
+            <span className="opacity-50">Items per round</span>
+            <span>7</span>
             <span className="opacity-50">Round timer</span>
             <span>90 seconds</span>
           </div>
           <p className="text-xs opacity-50 mt-2">
-            All four numbers above are the defaults — items per round, round count, and timer length are all
-            adjustable in Settings.
+            Game length, items per round, and round timer are this app&apos;s defaults — all adjustable in Settings.
+            Players range and age rating are just reference info, not app settings.
           </p>
         </div>
 
@@ -141,9 +143,8 @@ export default function RulesPanel({ onClose }: Props) {
         </Section>
 
         <p className="text-xs opacity-40 -mt-1">
-          This app plays close to these rules, with some flexibility built in: rounds/items/timer are adjustable in
-          Settings and never a hard stop, and the die-bonus screen currently lets you pick the winning <em>player</em>
-          rather than walking through each person&apos;s nominated answer — the group can still do that part verbally.
+          This app plays close to these rules, with one bit of built-in flexibility: rounds, items per round, and
+          timer length are all adjustable in Settings and never a hard stop.
         </p>
       </div>
     </div>

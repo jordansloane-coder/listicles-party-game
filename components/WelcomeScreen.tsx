@@ -67,7 +67,7 @@ export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, on
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-6 max-w-md mx-auto w-full">
       <div className="text-center animate-pop-in">
         <h1 className="text-5xl font-extrabold text-hot drop-shadow-sm">Listicles</h1>
-        <p className="mt-2 text-lg opacity-70">Ridiculous lists. Real bragging rights.</p>
+        <p className="mt-2 text-lg opacity-70">Ridiculous lists. Real bragging rights. Justin getting pissed.</p>
       </div>
 
       <form onSubmit={submit} className="w-full flex gap-2">

@@ -14,7 +14,7 @@ export type Action =
   | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
   | { type: 'GO_TO_DICE' }
   | { type: 'ROLL_DICE'; face: DieFace }
-  | { type: 'PICK_DICE_WINNER'; playerId: string }
+  | { type: 'CONFIRM_DICE_WINNERS'; playerIds: string[]; nominations: Record<string, string> }
   | { type: 'SKIP_DICE_BONUS' }
   | { type: 'NEXT_ROUND' }
   | { type: 'END_GAME' }
@@ -37,7 +37,6 @@ export function createInitialState(): GameState {
     categoryHistory: [],
     lastRoundWasManual: false,
     diceFace: null,
-    diceBonusPlayerId: null,
     history: [],
     soundEnabled: true,
   };
@@ -70,7 +69,6 @@ function startRound(state: GameState): GameState {
     currentRoundResults: null,
     categoryHistory: [],
     diceFace: null,
-    diceBonusPlayerId: null,
   };
 }
 
@@ -167,10 +165,9 @@ export function gameReducer(state: GameState, action: Action): GameState {
     case 'ROLL_DICE':
       return { ...state, diceFace: action.face };
 
-    case 'PICK_DICE_WINNER': {
-      const players = state.players.map((p) =>
-        p.id === action.playerId ? { ...p, totalScore: p.totalScore + 3 } : p
-      );
+    case 'CONFIRM_DICE_WINNERS': {
+      const winnerIds = new Set(action.playerIds);
+      const players = state.players.map((p) => (winnerIds.has(p.id) ? { ...p, totalScore: p.totalScore + 3 } : p));
       const record: RoundRecord = {
         roundNumber: state.roundNumber,
         category: state.currentCategory ?? '',
@@ -178,12 +175,12 @@ export function gameReducer(state: GameState, action: Action): GameState {
         results: state.currentRoundResults ?? [],
         manual: state.lastRoundWasManual,
         dieFace: state.diceFace,
-        diceBonusPlayerId: action.playerId,
+        diceNominations: action.nominations,
+        diceBonusPlayerIds: action.playerIds,
       };
       return {
         ...state,
         players,
-        diceBonusPlayerId: action.playerId,
         history: [...state.history, record],
         phase: 'roundEnd',
       };
@@ -197,7 +194,8 @@ export function gameReducer(state: GameState, action: Action): GameState {
         results: state.currentRoundResults ?? [],
         manual: state.lastRoundWasManual,
         dieFace: state.diceFace,
-        diceBonusPlayerId: null,
+        diceNominations: {},
+        diceBonusPlayerIds: [],
       };
       return { ...state, history: [...state.history, record], phase: 'roundEnd' };
     }

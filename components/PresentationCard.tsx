@@ -1,5 +1,7 @@
 'use client';
 
+import HourglassTimer from './HourglassTimer';
+
 interface Props {
   category: string;
   bonusLetter: string;
@@ -29,8 +31,6 @@ export default function PresentationCard({
   onExit,
   onSkip,
 }: Props) {
-  const pct = (remaining / seconds) * 100;
-  const barColor = pct > 50 ? 'bg-mint' : pct > 20 ? 'bg-sun' : 'bg-white';
   const urgent = running && remaining <= 10;
 
   return (
@@ -72,12 +72,13 @@ export default function PresentationCard({
           >
             {remaining}
           </div>
-          <div className="mt-2 h-3 sm:h-4 w-full rounded-full bg-black/20 overflow-hidden">
-            <div
-              className={`h-full ${barColor} transition-[width] duration-200 ease-linear rounded-full`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
+          <HourglassTimer
+            remaining={remaining}
+            seconds={seconds}
+            glassColor="white"
+            className="mt-1 mx-auto"
+            style={{ width: 'min(16vw, 11vh)', height: 'min(26vw, 17.6vh)' }}
+          />
           <div className="mt-3 flex gap-2 justify-center">
             <button
               onClick={running ? onPause : onResume}
