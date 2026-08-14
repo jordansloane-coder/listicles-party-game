@@ -1,69 +1,160 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useReducer, useRef } from 'react';
+import { createInitialState, gameReducer } from '@/lib/gameReducer';
+import { clearGameState, loadGameState, saveGameState } from '@/lib/storage';
+import { playScoreReveal, playTimerEnd, unlockSound } from '@/lib/sound';
+import Header from '@/components/Header';
+import WelcomeScreen from '@/components/WelcomeScreen';
+import WritingScreen from '@/components/WritingScreen';
+import EntryScreen from '@/components/EntryScreen';
+import ScoringScreen from '@/components/ScoringScreen';
+import DiceScreen from '@/components/DiceScreen';
+import RoundEndScreen from '@/components/RoundEndScreen';
+import FinalScreen from '@/components/FinalScreen';
 
 export default function Home() {
+  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    const saved = loadGameState();
+    if (saved) dispatch({ type: 'LOAD_STATE', state: saved });
+    hydrated.current = true;
+  }, []);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    // iOS only lets an AudioContext produce sound if it's resumed inside a
+    // user gesture. Unlocking on the very first tap anywhere means it's
+    // already running by the time the round timer auto-expires later with
+    // no gesture at all.
+    function unlock() {
+      unlockSound();
+      document.removeEventListener('pointerdown', unlock);
+    }
+    document.addEventListener('pointerdown', unlock);
+    return () => document.removeEventListener('pointerdown', unlock);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    saveGameState(state);
+  }, [state]);
+
+  useEffect(() => {
+    if (state.phase === 'scoring') playScoreReveal(state.soundEnabled);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase]);
+
+  function resetGame() {
+    if (!confirm('Clear the current game and start over?')) return;
+    clearGameState();
+    dispatch({ type: 'PLAY_AGAIN' });
+  }
+
+  const showHeader = state.phase !== 'entry'; // keep entry screen distraction-free while a player is typing
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex-1 flex flex-col">
+      {showHeader && (
+        <Header
+          soundEnabled={state.soundEnabled}
+          onToggleSound={() => dispatch({ type: 'TOGGLE_SOUND' })}
+          onReset={state.phase !== 'setup' ? resetGame : undefined}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
+
+      {state.phase === 'setup' && (
+        <WelcomeScreen
+          players={state.players}
+          onAddPlayer={(name) => dispatch({ type: 'ADD_PLAYER', name })}
+          onRemovePlayer={(id) => dispatch({ type: 'REMOVE_PLAYER', id })}
+          onStart={() => dispatch({ type: 'START_GAME' })}
+          onClear={() => {
+            clearGameState();
+            dispatch({ type: 'PLAY_AGAIN' });
+          }}
+        />
+      )}
+
+      {state.phase === 'writing' && state.currentCategory && state.currentBonusLetter && (
+        <WritingScreen
+          category={state.currentCategory}
+          bonusLetter={state.currentBonusLetter}
+          roundNumber={state.roundNumber}
+          onExpire={() => {
+            playTimerEnd(state.soundEnabled);
+            dispatch({ type: 'END_WRITING' });
+          }}
+          onSkip={() => dispatch({ type: 'END_WRITING' })}
+        />
+      )}
+
+      {state.phase === 'entry' && state.currentCategory && state.currentBonusLetter && (
+        <EntryScreen
+          player={state.players[state.entryPlayerIndex]}
+          playerIndex={state.entryPlayerIndex}
+          totalPlayers={state.players.length}
+          category={state.currentCategory}
+          bonusLetter={state.currentBonusLetter}
+          onSubmit={(items) =>
+            dispatch({ type: 'SUBMIT_ENTRY', playerId: state.players[state.entryPlayerIndex].id, items })
+          }
+        />
+      )}
+
+      {state.phase === 'scoring' && state.currentRoundResults && state.currentCategory && state.currentBonusLetter && (
+        <ScoringScreen
+          players={state.players}
+          results={state.currentRoundResults}
+          category={state.currentCategory}
+          bonusLetter={state.currentBonusLetter}
+          onContinue={() => dispatch({ type: 'GO_TO_DICE' })}
+          onSkipBonus={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
+        />
+      )}
+
+      {state.phase === 'dice' && (
+        <DiceScreen
+          players={state.players}
+          diceFace={state.diceFace}
+          soundEnabled={state.soundEnabled}
+          onRoll={(face) => {
+            unlockSound();
+            dispatch({ type: 'ROLL_DICE', face });
+          }}
+          onPickWinner={(playerId) => dispatch({ type: 'PICK_DICE_WINNER', playerId })}
+          onSkip={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
+        />
+      )}
+
+      {state.phase === 'roundEnd' && (
+        <RoundEndScreen
+          players={state.players}
+          roundNumber={state.roundNumber}
+          onNextRound={() => dispatch({ type: 'NEXT_ROUND' })}
+          onEndGame={() => dispatch({ type: 'END_GAME' })}
+        />
+      )}
+
+      {state.phase === 'final' && (
+        <FinalScreen
+          players={state.players}
+          roundsPlayed={state.roundNumber}
+          onPlayAgain={() => {
+            clearGameState();
+            dispatch({ type: 'PLAY_AGAIN' });
+          }}
+        />
+      )}
     </div>
   );
 }
