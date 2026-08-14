@@ -9,18 +9,27 @@ interface Props {
   totalPlayers: number;
   category: string;
   bonusLetter: string;
+  itemsPerRound: number;
   onSubmit: (items: string[]) => void;
 }
 
-const ITEM_COUNT = 7;
-
-export default function EntryScreen({ player, playerIndex, totalPlayers, category, bonusLetter, onSubmit }: Props) {
+export default function EntryScreen({
+  player,
+  playerIndex,
+  totalPlayers,
+  category,
+  bonusLetter,
+  itemsPerRound,
+  onSubmit,
+}: Props) {
+  const ITEM_COUNT = itemsPerRound;
   const [items, setItems] = useState<string[]>(() => Array(ITEM_COUNT).fill(''));
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     setItems(Array(ITEM_COUNT).fill(''));
     inputRefs.current[0]?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player.id]);
 
   function updateItem(index: number, value: string) {

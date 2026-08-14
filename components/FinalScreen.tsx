@@ -5,10 +5,11 @@ import type { Player } from '@/lib/types';
 interface Props {
   players: Player[];
   roundsPlayed: number;
-  onPlayAgain: () => void;
+  onPlayAnotherGame: () => void;
+  onNewPlayers: () => void;
 }
 
-export default function FinalScreen({ players, roundsPlayed, onPlayAgain }: Props) {
+export default function FinalScreen({ players, roundsPlayed, onPlayAnotherGame, onNewPlayers }: Props) {
   const sorted = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sorted[0];
 
@@ -18,7 +19,7 @@ export default function FinalScreen({ players, roundsPlayed, onPlayAgain }: Prop
         <p className="text-6xl mb-2">🏆</p>
         <h1 className="text-3xl font-extrabold">{winner?.name} wins!</h1>
         <p className="opacity-60 mt-1">
-          {roundsPlayed} round{roundsPlayed === 1 ? '' : 's'} played
+          {roundsPlayed} round{roundsPlayed === 1 ? '' : 's'} played · saved to history
         </p>
       </div>
 
@@ -41,12 +42,20 @@ export default function FinalScreen({ players, roundsPlayed, onPlayAgain }: Prop
         </div>
       </div>
 
-      <button
-        onClick={onPlayAgain}
-        className="mt-auto w-full rounded-2xl bg-hot text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform"
-      >
-        Play Again
-      </button>
+      <div className="mt-auto w-full flex flex-col gap-3">
+        <button
+          onClick={onPlayAnotherGame}
+          className="w-full rounded-2xl bg-hot text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform"
+        >
+          Play Another Game
+        </button>
+        <button
+          onClick={onNewPlayers}
+          className="w-full rounded-2xl bg-card font-bold text-lg py-4 shadow active:scale-95 transition-transform"
+        >
+          New Players
+        </button>
+      </div>
     </div>
   );
 }

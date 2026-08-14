@@ -23,6 +23,7 @@ export interface RoundRecord {
   category: string;
   bonusLetter: string;
   results: PlayerRoundResult[];
+  manual: boolean;
   dieFace: DieFace | null;
   diceBonusPlayerId: string | null;
 }
@@ -31,6 +32,7 @@ export type Phase =
   | 'setup'
   | 'writing'
   | 'entry'
+  | 'manualScore'
   | 'scoring'
   | 'dice'
   | 'roundEnd'
@@ -46,6 +48,7 @@ export interface GameState {
   entryPlayerIndex: number;
   roundEntries: Record<string, string[]>;
   currentRoundResults: PlayerRoundResult[] | null;
+  lastRoundWasManual: boolean;
   diceFace: DieFace | null;
   diceBonusPlayerId: string | null;
   history: RoundRecord[];

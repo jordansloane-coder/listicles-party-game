@@ -6,14 +6,17 @@ export type Action =
   | { type: 'ADD_PLAYER'; name: string }
   | { type: 'REMOVE_PLAYER'; id: string }
   | { type: 'START_GAME' }
-  | { type: 'END_WRITING' }
+  | { type: 'PASS_CATEGORY' }
+  | { type: 'END_WRITING'; mode: 'entry' | 'manualScore' }
   | { type: 'SUBMIT_ENTRY'; playerId: string; items: string[] }
+  | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
   | { type: 'GO_TO_DICE' }
   | { type: 'ROLL_DICE'; face: DieFace }
   | { type: 'PICK_DICE_WINNER'; playerId: string }
   | { type: 'SKIP_DICE_BONUS' }
   | { type: 'NEXT_ROUND' }
   | { type: 'END_GAME' }
+  | { type: 'PLAY_ANOTHER_GAME' }
   | { type: 'PLAY_AGAIN' }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'LOAD_STATE'; state: GameState };
@@ -29,6 +32,7 @@ export function createInitialState(): GameState {
     entryPlayerIndex: 0,
     roundEntries: {},
     currentRoundResults: null,
+    lastRoundWasManual: false,
     diceFace: null,
     diceBonusPlayerId: null,
     history: [],
@@ -83,8 +87,22 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return startRound(state);
     }
 
+    case 'PASS_CATEGORY': {
+      const { category, used } = pickCategory(state.usedCategories);
+      return {
+        ...state,
+        currentCategory: category,
+        usedCategories: used,
+        currentBonusLetter: randomBonusLetter(),
+      };
+    }
+
     case 'END_WRITING':
-      return { ...state, phase: 'entry', entryPlayerIndex: 0 };
+      return {
+        ...state,
+        phase: action.mode === 'manualScore' ? 'manualScore' : 'entry',
+        entryPlayerIndex: 0,
+      };
 
     case 'SUBMIT_ENTRY': {
       const roundEntries = { ...state.roundEntries, [action.playerId]: action.items };
@@ -102,7 +120,27 @@ export function gameReducer(state: GameState, action: Action): GameState {
         roundEntries,
         players,
         currentRoundResults: results,
+        lastRoundWasManual: false,
         phase: 'scoring',
+      };
+    }
+
+    case 'SUBMIT_MANUAL_SCORES': {
+      const results = state.players.map((p) => ({
+        playerId: p.id,
+        items: [],
+        subtotal: action.scores[p.id] ?? 0,
+      }));
+      const players = state.players.map((p) => ({
+        ...p,
+        totalScore: p.totalScore + (action.scores[p.id] ?? 0),
+      }));
+      return {
+        ...state,
+        players,
+        currentRoundResults: results,
+        lastRoundWasManual: true,
+        phase: 'dice',
       };
     }
 
@@ -121,6 +159,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
         category: state.currentCategory ?? '',
         bonusLetter: state.currentBonusLetter ?? '',
         results: state.currentRoundResults ?? [],
+        manual: state.lastRoundWasManual,
         dieFace: state.diceFace,
         diceBonusPlayerId: action.playerId,
       };
@@ -139,6 +178,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
         category: state.currentCategory ?? '',
         bonusLetter: state.currentBonusLetter ?? '',
         results: state.currentRoundResults ?? [],
+        manual: state.lastRoundWasManual,
         dieFace: state.diceFace,
         diceBonusPlayerId: null,
       };
@@ -150,6 +190,11 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'END_GAME':
       return { ...state, phase: 'final' };
+
+    case 'PLAY_ANOTHER_GAME': {
+      const players = state.players.map((p) => ({ ...p, totalScore: 0 }));
+      return startRound({ ...state, players, history: [], roundNumber: 0 });
+    }
 
     case 'PLAY_AGAIN':
       return createInitialState();
