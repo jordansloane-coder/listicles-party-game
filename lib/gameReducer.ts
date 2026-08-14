@@ -7,6 +7,8 @@ export type Action =
   | { type: 'REMOVE_PLAYER'; id: string }
   | { type: 'START_GAME' }
   | { type: 'PASS_CATEGORY' }
+  | { type: 'GO_BACK_CATEGORY' }
+  | { type: 'REROLL_LETTER' }
   | { type: 'END_WRITING'; mode: 'entry' | 'manualScore' }
   | { type: 'SUBMIT_ENTRY'; playerId: string; items: string[] }
   | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
@@ -32,6 +34,7 @@ export function createInitialState(): GameState {
     entryPlayerIndex: 0,
     roundEntries: {},
     currentRoundResults: null,
+    categoryHistory: [],
     lastRoundWasManual: false,
     diceFace: null,
     diceBonusPlayerId: null,
@@ -65,6 +68,7 @@ function startRound(state: GameState): GameState {
     entryPlayerIndex: 0,
     roundEntries: {},
     currentRoundResults: null,
+    categoryHistory: [],
     diceFace: null,
     diceBonusPlayerId: null,
   };
@@ -93,9 +97,22 @@ export function gameReducer(state: GameState, action: Action): GameState {
         ...state,
         currentCategory: category,
         usedCategories: used,
-        currentBonusLetter: randomBonusLetter(),
+        categoryHistory: [...state.categoryHistory, state.currentCategory ?? ''],
       };
     }
+
+    case 'GO_BACK_CATEGORY': {
+      if (state.categoryHistory.length === 0) return state;
+      const prev = state.categoryHistory[state.categoryHistory.length - 1];
+      return {
+        ...state,
+        currentCategory: prev,
+        categoryHistory: state.categoryHistory.slice(0, -1),
+      };
+    }
+
+    case 'REROLL_LETTER':
+      return { ...state, currentBonusLetter: randomBonusLetter() };
 
     case 'END_WRITING':
       return {

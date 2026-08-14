@@ -131,12 +131,15 @@ export default function Home() {
           roundSeconds={settings.roundSeconds}
           itemsPerRound={settings.itemsPerRound}
           manualScoringDefault={settings.manualScoringDefault}
+          hasPreviousCategory={state.categoryHistory.length > 0}
           onExpire={(mode) => {
             playTimerEnd(state.soundEnabled);
             dispatch({ type: 'END_WRITING', mode });
           }}
           onSkip={(mode) => dispatch({ type: 'END_WRITING', mode })}
           onPass={() => dispatch({ type: 'PASS_CATEGORY' })}
+          onGoBack={() => dispatch({ type: 'GO_BACK_CATEGORY' })}
+          onRerollLetter={() => dispatch({ type: 'REROLL_LETTER' })}
         />
       )}
 

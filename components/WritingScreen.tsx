@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Timer from './Timer';
+import PresentationCard from './PresentationCard';
+import { useCountdown } from '@/lib/useCountdown';
 
 interface Props {
   category: string;
@@ -11,9 +13,12 @@ interface Props {
   roundSeconds: number;
   itemsPerRound: number;
   manualScoringDefault: boolean;
+  hasPreviousCategory: boolean;
   onExpire: (mode: 'entry' | 'manualScore') => void;
   onSkip: (mode: 'entry' | 'manualScore') => void;
   onPass: () => void;
+  onGoBack: () => void;
+  onRerollLetter: () => void;
 }
 
 export default function WritingScreen({
@@ -24,14 +29,55 @@ export default function WritingScreen({
   roundSeconds,
   itemsPerRound,
   manualScoringDefault,
+  hasPreviousCategory,
   onExpire,
   onSkip,
   onPass,
+  onGoBack,
+  onRerollLetter,
 }: Props) {
   const [timerStarted, setTimerStarted] = useState(false);
   const [manualMode, setManualMode] = useState(manualScoringDefault);
+  const [presentationMode, setPresentationMode] = useState(false);
 
   const mode: 'entry' | 'manualScore' = manualMode ? 'manualScore' : 'entry';
+  const remaining = useCountdown(roundSeconds, timerStarted, () => onExpire(mode));
+
+  // Rotate the phone to landscape and the big-screen card appears on its own;
+  // rotate back and it goes away. A manual button covers desktop/no-rotation.
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mql = window.matchMedia('(orientation: landscape)');
+    const sync = () => setPresentationMode(mql.matches);
+    sync();
+    mql.addEventListener('change', sync);
+    return () => mql.removeEventListener('change', sync);
+  }, []);
+
+  function enterPresentation() {
+    setPresentationMode(true);
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+
+  function exitPresentation() {
+    setPresentationMode(false);
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  }
+
+  if (presentationMode) {
+    return (
+      <PresentationCard
+        category={category}
+        bonusLetter={bonusLetter}
+        timerStarted={timerStarted}
+        remaining={remaining}
+        seconds={roundSeconds}
+        onStartTimer={() => setTimerStarted(true)}
+        onExit={exitPresentation}
+        onSkip={() => onSkip(mode)}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-8 max-w-md mx-auto w-full">
@@ -49,19 +95,38 @@ export default function WritingScreen({
         </div>
         <p className="mt-1 text-sm opacity-60">Answers starting with {bonusLetter} score double!</p>
         {!timerStarted && (
-          <button onClick={onPass} className="mt-4 text-sm opacity-50 underline">
-            🔀 Get a different one
-          </button>
+          <div className="mt-4 flex flex-col items-center gap-2 text-sm opacity-50">
+            <div className="flex items-center justify-center gap-4">
+              {hasPreviousCategory && (
+                <button onClick={onGoBack} className="underline">
+                  ◀ Previous
+                </button>
+              )}
+              <button onClick={onPass} className="underline">
+                🔀 Get a different one
+              </button>
+            </div>
+            <button onClick={onRerollLetter} className="underline">
+              🎲 New bonus letter
+            </button>
+          </div>
         )}
       </div>
 
       {timerStarted ? (
-        <Timer seconds={roundSeconds} onExpire={() => onExpire(mode)} />
+        <Timer remaining={remaining} seconds={roundSeconds} />
       ) : (
         <p className="text-center opacity-50 text-sm">
           Get everyone ready, then start the clock whenever you are.
         </p>
       )}
+
+      <button
+        onClick={enterPresentation}
+        className="flex items-center gap-2 rounded-full bg-card shadow px-4 py-2 text-sm font-bold"
+      >
+        🖥️ Big Screen Mode
+      </button>
 
       <label className="flex items-center gap-2 text-sm font-semibold">
         <input

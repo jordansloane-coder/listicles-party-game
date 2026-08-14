@@ -1,33 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-
 interface Props {
+  remaining: number;
   seconds: number;
-  onExpire: () => void;
 }
 
-export default function Timer({ seconds, onExpire }: Props) {
-  const [remaining, setRemaining] = useState(seconds);
-  const expiredRef = useRef(false);
-
-  useEffect(() => {
-    expiredRef.current = false;
-    setRemaining(seconds);
-    const startedAt = Date.now();
-    const interval = window.setInterval(() => {
-      const left = Math.max(0, seconds - Math.floor((Date.now() - startedAt) / 1000));
-      setRemaining(left);
-      if (left <= 0 && !expiredRef.current) {
-        expiredRef.current = true;
-        window.clearInterval(interval);
-        onExpire();
-      }
-    }, 250);
-    return () => window.clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seconds]);
-
+export default function Timer({ remaining, seconds }: Props) {
   const pct = (remaining / seconds) * 100;
   const color = pct > 50 ? 'bg-mint' : pct > 20 ? 'bg-sun' : 'bg-hot';
   const urgent = remaining <= 10;

@@ -48,6 +48,7 @@ export interface GameState {
   entryPlayerIndex: number;
   roundEntries: Record<string, string[]>;
   currentRoundResults: PlayerRoundResult[] | null;
+  categoryHistory: string[];
   lastRoundWasManual: boolean;
   diceFace: DieFace | null;
   diceBonusPlayerId: string | null;
