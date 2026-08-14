@@ -98,19 +98,15 @@ export default function Home() {
     dispatch({ type: 'END_GAME' });
   }
 
-  const showHeader = state.phase !== 'entry'; // keep entry screen distraction-free while a player is typing
-
   return (
     <div className="flex-1 flex flex-col">
-      {showHeader && (
-        <Header
-          soundEnabled={state.soundEnabled}
-          onToggleSound={() => dispatch({ type: 'TOGGLE_SOUND' })}
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenHistory={() => setShowHistory(true)}
-          onReset={state.phase !== 'setup' ? resetGame : undefined}
-        />
-      )}
+      <Header
+        soundEnabled={state.soundEnabled}
+        onToggleSound={() => dispatch({ type: 'TOGGLE_SOUND' })}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenHistory={() => setShowHistory(true)}
+        onReset={state.phase !== 'setup' ? resetGame : undefined}
+      />
 
       {state.phase === 'setup' && (
         <WelcomeScreen
