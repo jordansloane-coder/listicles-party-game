@@ -36,12 +36,13 @@ export default function WritingScreen({
   onGoBack,
   onRerollLetter,
 }: Props) {
-  const [timerStarted, setTimerStarted] = useState(false);
   const [manualMode, setManualMode] = useState(manualScoringDefault);
   const [presentationMode, setPresentationMode] = useState(false);
 
   const mode: 'entry' | 'manualScore' = manualMode ? 'manualScore' : 'entry';
-  const remaining = useCountdown(roundSeconds, timerStarted, () => onExpire(mode));
+  const { remaining, running, everStarted, start, pause, resume, reset } = useCountdown(roundSeconds, () =>
+    onExpire(mode)
+  );
 
   // Rotate the phone to landscape and the big-screen card appears on its own;
   // rotate back and it goes away. A manual button covers desktop/no-rotation.
@@ -69,10 +70,14 @@ export default function WritingScreen({
       <PresentationCard
         category={category}
         bonusLetter={bonusLetter}
-        timerStarted={timerStarted}
+        everStarted={everStarted}
+        running={running}
         remaining={remaining}
         seconds={roundSeconds}
-        onStartTimer={() => setTimerStarted(true)}
+        onStart={start}
+        onPause={pause}
+        onResume={resume}
+        onReset={reset}
         onExit={exitPresentation}
         onSkip={() => onSkip(mode)}
       />
@@ -94,7 +99,7 @@ export default function WritingScreen({
           ✨ Bonus letter: {bonusLetter}
         </div>
         <p className="mt-1 text-sm opacity-60">Answers starting with {bonusLetter} score double!</p>
-        {!timerStarted && (
+        {!everStarted && (
           <div className="mt-4 flex flex-col items-center gap-2 text-sm opacity-50">
             <div className="flex items-center justify-center gap-4">
               {hasPreviousCategory && (
@@ -113,8 +118,24 @@ export default function WritingScreen({
         )}
       </div>
 
-      {timerStarted ? (
-        <Timer remaining={remaining} seconds={roundSeconds} />
+      {everStarted ? (
+        <div className="w-full flex flex-col gap-3">
+          <Timer remaining={remaining} seconds={roundSeconds} />
+          <div className="flex gap-3">
+            <button
+              onClick={running ? pause : resume}
+              className="flex-1 rounded-2xl bg-card shadow py-3 font-bold active:scale-95 transition-transform"
+            >
+              {running ? '⏸ Pause' : '▶ Resume'}
+            </button>
+            <button
+              onClick={reset}
+              className="flex-1 rounded-2xl bg-card shadow py-3 font-bold active:scale-95 transition-transform"
+            >
+              ↺ Reset
+            </button>
+          </div>
+        </div>
       ) : (
         <p className="text-center opacity-50 text-sm">
           Get everyone ready, then start the clock whenever you are.
@@ -139,9 +160,9 @@ export default function WritingScreen({
       </label>
 
       <div className="mt-auto w-full flex flex-col gap-3">
-        {!timerStarted && (
+        {!everStarted && (
           <button
-            onClick={() => setTimerStarted(true)}
+            onClick={start}
             className="w-full rounded-2xl bg-hot text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform"
           >
             ▶️ Start Timer
@@ -150,7 +171,7 @@ export default function WritingScreen({
         <button
           onClick={() => onSkip(mode)}
           className={
-            timerStarted
+            everStarted
               ? 'w-full rounded-2xl bg-electric text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform'
               : 'text-sm opacity-50 underline py-2'
           }

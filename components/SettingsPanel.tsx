@@ -6,6 +6,7 @@ interface Props {
   settings: Settings;
   onChange: (settings: Settings) => void;
   onClose: () => void;
+  onOpenRules: () => void;
 }
 
 function NumberField({
@@ -37,7 +38,7 @@ function NumberField({
   );
 }
 
-export default function SettingsPanel({ settings, onChange, onClose }: Props) {
+export default function SettingsPanel({ settings, onChange, onClose, onOpenRules }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6">
       <div className="animate-pop-in w-full max-w-sm rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-5">
@@ -81,6 +82,13 @@ export default function SettingsPanel({ settings, onChange, onClose }: Props) {
           Changes apply starting next round — anything in progress keeps going as-is. &quot;Rounds per game&quot; is just a
           target label, never a hard stop.
         </p>
+
+        <button
+          onClick={onOpenRules}
+          className="w-full rounded-2xl bg-electric text-white font-bold py-3 shadow active:scale-95 transition-transform"
+        >
+          📖 See Rules
+        </button>
       </div>
     </div>
   );

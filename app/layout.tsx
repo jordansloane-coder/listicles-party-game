@@ -28,7 +28,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#ff3d81',
+  themeColor: '#e0201b',
 };
 
 const darkModeInit = `

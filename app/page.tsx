@@ -18,6 +18,7 @@ import RoundEndScreen from '@/components/RoundEndScreen';
 import FinalScreen from '@/components/FinalScreen';
 import SettingsPanel from '@/components/SettingsPanel';
 import HistoryPanel from '@/components/HistoryPanel';
+import RulesPanel from '@/components/RulesPanel';
 
 function rankPlayers(players: Player[]): BankedGame['results'] {
   const sorted = [...players].sort((a, b) => b.totalScore - a.totalScore);
@@ -36,6 +37,7 @@ export default function Home() {
   const [history, setHistory] = useState<BankedGame[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     const saved = loadGameState();
@@ -213,7 +215,15 @@ export default function Home() {
       )}
 
       {showSettings && (
-        <SettingsPanel settings={settings} onChange={updateSettings} onClose={() => setShowSettings(false)} />
+        <SettingsPanel
+          settings={settings}
+          onChange={updateSettings}
+          onClose={() => setShowSettings(false)}
+          onOpenRules={() => {
+            setShowSettings(false);
+            setShowRules(true);
+          }}
+        />
       )}
 
       {showHistory && (
@@ -226,6 +236,8 @@ export default function Home() {
           onClose={() => setShowHistory(false)}
         />
       )}
+
+      {showRules && <RulesPanel onClose={() => setShowRules(false)} />}
     </div>
   );
 }

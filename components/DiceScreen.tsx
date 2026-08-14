@@ -52,13 +52,20 @@ export default function DiceScreen({ players, diceFace, soundEnabled, onRoll, on
       </div>
 
       {!diceFace && (
-        <button
-          onClick={handleRoll}
-          disabled={rolling}
-          className="w-full rounded-2xl bg-electric text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform disabled:opacity-60"
-        >
-          {rolling ? 'Rolling…' : 'Roll the Bonus Die 🎲'}
-        </button>
+        <div className="w-full flex flex-col gap-2">
+          <button
+            onClick={handleRoll}
+            disabled={rolling}
+            className="w-full rounded-2xl bg-electric text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform disabled:opacity-60"
+          >
+            {rolling ? 'Rolling…' : 'Roll the Bonus Die 🎲'}
+          </button>
+          {!rolling && (
+            <button onClick={onSkip} className="text-sm opacity-50 underline py-2">
+              Skip bonus round
+            </button>
+          )}
+        </div>
       )}
 
       {diceFace && (

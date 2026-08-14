@@ -12,7 +12,10 @@ interface Props {
 
 export default function Header({ soundEnabled, onToggleSound, onOpenSettings, onOpenHistory, onReset }: Props) {
   return (
-    <header className="flex items-center justify-between gap-2 px-4 py-3 max-w-3xl mx-auto w-full">
+    <header
+      className="flex items-center justify-between gap-2 px-4 pb-3 max-w-3xl mx-auto w-full"
+      style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+    >
       <span className="font-extrabold text-lg text-hot shrink-0">Listicles</span>
       <div className="flex items-center gap-2">
         {onReset && (

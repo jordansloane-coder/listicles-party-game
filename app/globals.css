@@ -2,20 +2,22 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #fff7f0;
-  --foreground: #24102b;
+  --background: #fff5f0;
+  --foreground: #2a0f0d;
   --card: #ffffff;
-  --hot: #ff3d81;
+  --hot: #e0201b;
+  --hot-deep: #a8140f;
   --electric: #4f5dff;
   --sun: #ffc72c;
   --mint: #2be0a6;
 }
 
 .dark {
-  --background: #17101f;
-  --foreground: #f4ecff;
-  --card: #241a30;
-  --hot: #ff5c96;
+  --background: #1a0e0d;
+  --foreground: #fdece9;
+  --card: #2b1614;
+  --hot: #ff453a;
+  --hot-deep: #b8241c;
   --electric: #7c88ff;
   --sun: #ffd54f;
   --mint: #35e6b3;
@@ -26,6 +28,7 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-hot: var(--hot);
+  --color-hot-deep: var(--hot-deep);
   --color-electric: var(--electric);
   --color-sun: var(--sun);
   --color-mint: var(--mint);
