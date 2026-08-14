@@ -7,6 +7,7 @@ interface Props {
   onChange: (settings: Settings) => void;
   onClose: () => void;
   onOpenRules: () => void;
+  onOpenHistory: () => void;
 }
 
 function NumberField({
@@ -38,10 +39,16 @@ function NumberField({
   );
 }
 
-export default function SettingsPanel({ settings, onChange, onClose, onOpenRules }: Props) {
+export default function SettingsPanel({ settings, onChange, onClose, onOpenRules, onOpenHistory }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6">
-      <div className="animate-pop-in w-full max-w-sm rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-5">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6"
+      onClick={onClose}
+    >
+      <div
+        className="animate-pop-in w-full max-w-sm rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-5"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-extrabold">Settings</h2>
           <button onClick={onClose} aria-label="Close settings" className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold">
@@ -83,12 +90,20 @@ export default function SettingsPanel({ settings, onChange, onClose, onOpenRules
           target label, never a hard stop.
         </p>
 
-        <button
-          onClick={onOpenRules}
-          className="w-full rounded-2xl bg-electric text-white font-bold py-3 shadow active:scale-95 transition-transform"
-        >
-          📖 See Rules
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onOpenRules}
+            className="w-full rounded-2xl bg-electric text-white font-bold py-3 shadow active:scale-95 transition-transform"
+          >
+            📖 See Rules
+          </button>
+          <button
+            onClick={onOpenHistory}
+            className="w-full rounded-2xl bg-card border-2 border-black/10 font-bold py-3 active:scale-95 transition-transform"
+          >
+            📜 Game History
+          </button>
+        </div>
       </div>
     </div>
   );

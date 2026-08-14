@@ -15,14 +15,28 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function RulesPanel({ onClose }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6">
-      <div className="animate-pop-in w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-5">
-        <div className="flex items-center justify-between sticky top-0 bg-card">
-          <h2 className="text-xl font-extrabold">How to Play</h2>
-          <button onClick={onClose} aria-label="Close rules" className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold">
-            ×
-          </button>
-        </div>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close rules"
+        className="fixed top-5 right-5 z-[60] w-10 h-10 rounded-full bg-white text-hot font-bold shadow-lg flex items-center justify-center text-xl"
+      >
+        ×
+      </button>
+
+      <div
+        className="animate-pop-in w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-extrabold pr-12">How to Play</h2>
+
+        <p className="text-xs opacity-50 -mt-3">
+          This describes how <em>this app</em> plays, not a reproduction of any official rulebook — check your
+          physical game&apos;s box/insert if you want the original wording.
+        </p>
 
         <Section title="1. Add players">
           <p>Add everyone playing (1 or more). You can remove or add people any time from the Start screen.</p>
@@ -54,7 +68,7 @@ export default function RulesPanel({ onClose }: Props) {
         </Section>
 
         <Section title="Settings & History">
-          <p>Adjust items per round, rounds-per-game label, timer length, and whether digital entry is skipped by default — changes apply starting next round. History keeps a running log of every finished game.</p>
+          <p>Adjust items per round, rounds-per-game label, timer length, and whether digital entry is skipped by default — changes apply starting next round. History (also in Settings) keeps a running log of every finished game.</p>
         </Section>
       </div>
     </div>

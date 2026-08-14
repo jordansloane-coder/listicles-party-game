@@ -6,11 +6,10 @@ interface Props {
   soundEnabled: boolean;
   onToggleSound: () => void;
   onOpenSettings: () => void;
-  onOpenHistory: () => void;
   onReset?: () => void;
 }
 
-export default function Header({ soundEnabled, onToggleSound, onOpenSettings, onOpenHistory, onReset }: Props) {
+export default function Header({ soundEnabled, onToggleSound, onOpenSettings, onReset }: Props) {
   return (
     <header
       className="flex items-center justify-between gap-2 px-4 pb-3 max-w-3xl mx-auto w-full"
@@ -27,13 +26,6 @@ export default function Header({ soundEnabled, onToggleSound, onOpenSettings, on
             ↺
           </button>
         )}
-        <button
-          onClick={onOpenHistory}
-          aria-label="Game history"
-          className="w-11 h-11 flex items-center justify-center rounded-full bg-card shadow text-xl shrink-0"
-        >
-          📜
-        </button>
         <button
           onClick={onOpenSettings}
           aria-label="Settings"

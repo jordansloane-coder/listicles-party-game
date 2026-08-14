@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Player } from '@/lib/types';
+import { DEFAULT_FREQUENT_PLAYERS, loadFrequentPlayers, saveFrequentPlayers } from '@/lib/frequentPlayers';
 
 interface Props {
   players: Player[];
@@ -13,12 +14,53 @@ interface Props {
 
 export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, onStart, onClear }: Props) {
   const [name, setName] = useState('');
+  const [frequentPlayers, setFrequentPlayers] = useState<string[]>(DEFAULT_FREQUENT_PLAYERS);
+  const [newFrequentName, setNewFrequentName] = useState('');
+
+  useEffect(() => {
+    setFrequentPlayers(loadFrequentPlayers());
+  }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || players.length >= 8) return;
     onAddPlayer(name);
     setName('');
+  }
+
+  function isSelected(frequentName: string): boolean {
+    return players.some((p) => p.name === frequentName);
+  }
+
+  function toggleFrequent(frequentName: string) {
+    const existing = players.find((p) => p.name === frequentName);
+    if (existing) {
+      onRemovePlayer(existing.id);
+    } else {
+      onAddPlayer(frequentName);
+    }
+  }
+
+  function selectAll() {
+    for (const frequentName of frequentPlayers) {
+      if (!isSelected(frequentName)) onAddPlayer(frequentName);
+    }
+  }
+
+  function addToFrequentList(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = newFrequentName.trim();
+    if (!trimmed || frequentPlayers.includes(trimmed)) return;
+    const next = [...frequentPlayers, trimmed];
+    setFrequentPlayers(next);
+    saveFrequentPlayers(next);
+    setNewFrequentName('');
+  }
+
+  function removeFromFrequentList(frequentName: string) {
+    const next = frequentPlayers.filter((n) => n !== frequentName);
+    setFrequentPlayers(next);
+    saveFrequentPlayers(next);
   }
 
   return (
@@ -44,6 +86,56 @@ export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, on
           Add
         </button>
       </form>
+
+      <details className="w-full rounded-2xl bg-card shadow overflow-hidden">
+        <summary className="cursor-pointer select-none px-4 py-3 font-bold flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
+          <span>👥 Frequent players</span>
+          <span className="opacity-50">▾</span>
+        </summary>
+        <div className="px-4 pb-4 flex flex-col gap-1 border-t border-black/5">
+          <button onClick={selectAll} className="self-start mt-3 mb-1 text-sm font-bold text-electric underline">
+            Select all
+          </button>
+          {frequentPlayers.map((frequentName) => (
+            <div key={frequentName} className="flex items-center justify-between gap-2 py-1.5">
+              <label className="flex items-center gap-3 font-semibold flex-1">
+                <input
+                  type="checkbox"
+                  checked={isSelected(frequentName)}
+                  onChange={() => toggleFrequent(frequentName)}
+                  className="w-5 h-5 accent-hot shrink-0"
+                />
+                {frequentName}
+              </label>
+              <button
+                onClick={() => removeFromFrequentList(frequentName)}
+                aria-label={`Remove ${frequentName} from frequent players list`}
+                className="text-xs opacity-40 underline shrink-0"
+              >
+                remove
+              </button>
+            </div>
+          ))}
+          {frequentPlayers.length === 0 && <p className="text-sm opacity-50 py-2">No frequent players saved yet.</p>}
+
+          <form onSubmit={addToFrequentList} className="flex gap-2 mt-3">
+            <input
+              value={newFrequentName}
+              onChange={(e) => setNewFrequentName(e.target.value)}
+              placeholder="Add a name to this list"
+              className="flex-1 rounded-xl bg-background px-3 py-2 text-sm shadow-inner outline-none ring-2 ring-transparent focus:ring-electric"
+              maxLength={20}
+            />
+            <button
+              type="submit"
+              disabled={!newFrequentName.trim()}
+              className="rounded-xl bg-electric text-white font-bold px-3 py-2 text-sm shadow disabled:opacity-40"
+            >
+              + Add
+            </button>
+          </form>
+        </div>
+      </details>
 
       <ul className="w-full flex flex-col gap-2">
         {players.map((p, i) => (

@@ -14,8 +14,14 @@ function formatDate(ts: number): string {
 
 export default function HistoryPanel({ games, onClear, onClose }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6">
-      <div className="animate-pop-in w-full max-w-sm max-h-[80vh] overflow-y-auto rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 py-6"
+      onClick={onClose}
+    >
+      <div
+        className="animate-pop-in w-full max-w-sm max-h-[80vh] overflow-y-auto rounded-3xl bg-card shadow-lg p-6 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-extrabold">Game History</h2>
           <button onClick={onClose} aria-label="Close history" className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold">

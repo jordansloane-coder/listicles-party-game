@@ -106,7 +106,6 @@ export default function Home() {
         soundEnabled={state.soundEnabled}
         onToggleSound={() => dispatch({ type: 'TOGGLE_SOUND' })}
         onOpenSettings={() => setShowSettings(true)}
-        onOpenHistory={() => setShowHistory(true)}
         onReset={state.phase !== 'setup' ? resetGame : undefined}
       />
 
@@ -222,6 +221,10 @@ export default function Home() {
           onOpenRules={() => {
             setShowSettings(false);
             setShowRules(true);
+          }}
+          onOpenHistory={() => {
+            setShowSettings(false);
+            setShowHistory(true);
           }}
         />
       )}

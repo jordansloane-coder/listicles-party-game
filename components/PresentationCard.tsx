@@ -35,49 +35,59 @@ export default function PresentationCard({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex flex-col items-center justify-start gap-5 px-6 pb-8 bg-gradient-to-b from-hot to-hot-deep text-white overflow-y-auto"
-      style={{ paddingTop: 'max(4.5rem, env(safe-area-inset-top) + 3.5rem)' }}
+      className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-3 px-6 bg-gradient-to-b from-hot to-hot-deep text-white overflow-y-auto"
+      style={{
+        paddingTop: 'max(1.25rem, env(safe-area-inset-top) + 0.5rem)',
+        paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom) + 0.5rem)',
+      }}
     >
       <button
         onClick={onExit}
         aria-label="Exit big screen mode"
-        className="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl shrink-0"
+        className="fixed top-3 right-3 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl shrink-0 z-10"
       >
         ✕
       </button>
 
-      <div className="w-full max-w-2xl rounded-[2.5rem] bg-white text-foreground shadow-2xl p-8 sm:p-10 flex flex-col items-center gap-3 animate-pop-in shrink-0">
-        <p className="text-base sm:text-lg font-bold uppercase tracking-wide opacity-40">The category is</p>
-        <h1 className="text-center font-extrabold leading-tight text-[clamp(1.75rem,6vw,4rem)]">{category}</h1>
+      {/* Every font size below scales off whichever of viewport width/height is
+          more constrained (via min(vw,vh)), since a wide-but-short landscape
+          phone screen needs much smaller text than its width alone implies. */}
+      <div className="w-full max-w-2xl rounded-[2rem] bg-white text-foreground shadow-2xl flex flex-col items-center gap-1.5 animate-pop-in shrink-0 p-[min(6vw,4vh)]">
+        <p className="font-bold uppercase tracking-wide opacity-40 text-[clamp(0.75rem,min(3vw,2.2vh),1.1rem)]">
+          The category is
+        </p>
+        <h1 className="text-center font-extrabold leading-tight text-[clamp(1.25rem,min(5.5vw,5.5vh),3rem)]">
+          {category}
+        </h1>
       </div>
 
-      <div className="rounded-full bg-white/15 px-6 sm:px-8 py-3 sm:py-4 font-extrabold text-[clamp(1.25rem,4.5vw,2.25rem)] shrink-0">
+      <div className="rounded-full bg-white/15 font-extrabold shrink-0 px-[min(5vw,3vh)] py-[min(2vw,1.4vh)] text-[clamp(1rem,min(4vw,3.4vh),1.75rem)]">
         ✨ Bonus letter: {bonusLetter}
       </div>
 
       {everStarted ? (
         <div className="w-full max-w-xl shrink-0">
           <div
-            className={`text-center font-extrabold tabular-nums text-[clamp(3.5rem,18vw,8rem)] ${urgent ? 'animate-shake' : ''}`}
+            className={`text-center font-extrabold tabular-nums leading-none text-[clamp(2.25rem,min(15vw,11vh),5.5rem)] ${urgent ? 'animate-shake' : ''}`}
           >
             {remaining}
           </div>
-          <div className="mt-4 h-5 sm:h-6 w-full rounded-full bg-black/20 overflow-hidden">
+          <div className="mt-2 h-3 sm:h-4 w-full rounded-full bg-black/20 overflow-hidden">
             <div
               className={`h-full ${barColor} transition-[width] duration-200 ease-linear rounded-full`}
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="mt-5 flex gap-3 justify-center">
+          <div className="mt-3 flex gap-2 justify-center">
             <button
               onClick={running ? onPause : onResume}
-              className="rounded-full bg-white text-hot font-extrabold px-6 py-3 text-lg shadow-lg active:scale-95 transition-transform"
+              className="rounded-full bg-white text-hot font-extrabold px-5 py-2 text-base shadow-lg active:scale-95 transition-transform"
             >
               {running ? '⏸ Pause' : '▶ Resume'}
             </button>
             <button
               onClick={onReset}
-              className="rounded-full bg-white/20 font-extrabold px-6 py-3 text-lg active:scale-95 transition-transform"
+              className="rounded-full bg-white/20 font-extrabold px-5 py-2 text-base active:scale-95 transition-transform"
             >
               ↺ Reset
             </button>
@@ -86,7 +96,7 @@ export default function PresentationCard({
       ) : (
         <button
           onClick={onStart}
-          className="rounded-full bg-white text-hot font-extrabold px-8 sm:px-10 py-5 sm:py-6 text-xl sm:text-2xl shadow-lg active:scale-95 transition-transform shrink-0"
+          className="rounded-full bg-white text-hot font-extrabold shadow-lg active:scale-95 transition-transform shrink-0 px-[min(8vw,5vh)] py-[min(4vw,2.5vh)] text-[clamp(1rem,min(5vw,3.5vh),1.5rem)]"
         >
           ▶️ Start Timer
         </button>
