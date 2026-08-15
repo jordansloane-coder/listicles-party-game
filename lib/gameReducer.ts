@@ -1,12 +1,13 @@
 import { CATEGORIES } from './categories';
+import { CATEGORIES_ADULT } from './categoriesAdult';
 import { randomBonusLetter, scoreRound } from './scoring';
 import type { DieFace, GameState, Player, RoundRecord } from './types';
 
 export type Action =
   | { type: 'ADD_PLAYER'; name: string }
   | { type: 'REMOVE_PLAYER'; id: string }
-  | { type: 'START_GAME' }
-  | { type: 'PASS_CATEGORY' }
+  | { type: 'START_GAME'; raunchy: boolean }
+  | { type: 'PASS_CATEGORY'; raunchy: boolean }
   | { type: 'GO_BACK_CATEGORY' }
   | { type: 'REROLL_LETTER' }
   | { type: 'END_WRITING'; mode: 'entry' | 'manualScore' }
@@ -16,9 +17,9 @@ export type Action =
   | { type: 'ROLL_DICE'; face: DieFace }
   | { type: 'CONFIRM_DICE_WINNERS'; playerIds: string[]; nominations: Record<string, string> }
   | { type: 'SKIP_DICE_BONUS' }
-  | { type: 'NEXT_ROUND' }
+  | { type: 'NEXT_ROUND'; raunchy: boolean }
   | { type: 'END_GAME' }
-  | { type: 'PLAY_ANOTHER_GAME' }
+  | { type: 'PLAY_ANOTHER_GAME'; raunchy: boolean }
   | { type: 'PLAY_AGAIN' }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'LOAD_STATE'; state: GameState };
@@ -42,21 +43,22 @@ export function createInitialState(): GameState {
   };
 }
 
-function pickCategory(used: string[]): { category: string; used: string[] } {
-  let pool = CATEGORIES.filter((c) => !used.includes(c));
+function pickCategory(used: string[], raunchy: boolean): { category: string; used: string[] } {
+  const source = raunchy ? CATEGORIES_ADULT : CATEGORIES;
+  let pool = source.filter((c) => !used.includes(c));
   let nextUsed = used;
   if (pool.length === 0) {
     // Every category has been played this session — reshuffle the pool
     // rather than stall the game.
-    pool = CATEGORIES;
+    pool = source;
     nextUsed = [];
   }
   const category = pool[Math.floor(Math.random() * pool.length)];
   return { category, used: [...nextUsed, category] };
 }
 
-function startRound(state: GameState): GameState {
-  const { category, used } = pickCategory(state.usedCategories);
+function startRound(state: GameState, raunchy: boolean): GameState {
+  const { category, used } = pickCategory(state.usedCategories, raunchy);
   return {
     ...state,
     phase: 'writing',
@@ -86,11 +88,11 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'START_GAME': {
       if (state.players.length < 1) return state;
-      return startRound(state);
+      return startRound(state, action.raunchy);
     }
 
     case 'PASS_CATEGORY': {
-      const { category, used } = pickCategory(state.usedCategories);
+      const { category, used } = pickCategory(state.usedCategories, action.raunchy);
       return {
         ...state,
         currentCategory: category,
@@ -201,14 +203,14 @@ export function gameReducer(state: GameState, action: Action): GameState {
     }
 
     case 'NEXT_ROUND':
-      return startRound(state);
+      return startRound(state, action.raunchy);
 
     case 'END_GAME':
       return { ...state, phase: 'final' };
 
     case 'PLAY_ANOTHER_GAME': {
       const players = state.players.map((p) => ({ ...p, totalScore: 0 }));
-      return startRound({ ...state, players, history: [], roundNumber: 0 });
+      return startRound({ ...state, players, history: [], roundNumber: 0 }, action.raunchy);
     }
 
     case 'PLAY_AGAIN':

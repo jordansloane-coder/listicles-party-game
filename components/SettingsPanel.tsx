@@ -91,6 +91,23 @@ export default function SettingsPanel({ settings, onChange, onClose, onOpenRules
           target label, never a hard stop.
         </p>
 
+        <label
+          className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3 border-2 transition-colors ${
+            settings.raunchyMode ? 'bg-hot/10 border-hot' : 'bg-background border-transparent'
+          }`}
+        >
+          <span>
+            <span className="font-extrabold block">🌶️ Raunchy Mode</span>
+            <span className="text-xs opacity-60">Adult categories — 18+, off by default</span>
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.raunchyMode}
+            onChange={(e) => onChange({ ...settings, raunchyMode: e.target.checked })}
+            className="w-6 h-6 accent-hot shrink-0"
+          />
+        </label>
+
         <div className="flex flex-col gap-2">
           <button
             onClick={onOpenRules}

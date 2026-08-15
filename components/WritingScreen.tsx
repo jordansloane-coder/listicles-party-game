@@ -13,6 +13,7 @@ interface Props {
   roundSeconds: number;
   itemsPerRound: number;
   manualScoringDefault: boolean;
+  raunchyMode: boolean;
   hasPreviousCategory: boolean;
   onExpire: (mode: 'entry' | 'manualScore') => void;
   onSkip: (mode: 'entry' | 'manualScore') => void;
@@ -29,6 +30,7 @@ export default function WritingScreen({
   roundSeconds,
   itemsPerRound,
   manualScoringDefault,
+  raunchyMode,
   hasPreviousCategory,
   onExpire,
   onSkip,
@@ -70,6 +72,7 @@ export default function WritingScreen({
       <PresentationCard
         category={category}
         bonusLetter={bonusLetter}
+        raunchyMode={raunchyMode}
         everStarted={everStarted}
         running={running}
         remaining={remaining}
@@ -86,8 +89,13 @@ export default function WritingScreen({
 
   return (
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-8 max-w-md mx-auto w-full">
-      <p className="text-sm font-bold uppercase tracking-wide opacity-50">
+      <p className="text-sm font-bold uppercase tracking-wide opacity-50 flex items-center gap-2">
         Round {roundNumber} of {roundsPerGame}
+        {raunchyMode && (
+          <span className="normal-case tracking-normal font-extrabold text-hot bg-hot/10 rounded-full px-2 py-0.5 text-xs">
+            🌶️ Raunchy
+          </span>
+        )}
       </p>
 
       <div className="text-center animate-pop-in">

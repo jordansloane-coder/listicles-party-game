@@ -3,6 +3,7 @@ export interface Settings {
   roundsPerGame: number;
   roundSeconds: number;
   manualScoringDefault: boolean;
+  raunchyMode: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -10,6 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   roundsPerGame: 4,
   roundSeconds: 90,
   manualScoringDefault: true,
+  raunchyMode: false,
 };
 
 const STORAGE_KEY = 'listicles-settings';

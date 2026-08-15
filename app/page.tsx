@@ -116,7 +116,7 @@ export default function Home() {
           players={state.players}
           onAddPlayer={(name) => dispatch({ type: 'ADD_PLAYER', name })}
           onRemovePlayer={(id) => dispatch({ type: 'REMOVE_PLAYER', id })}
-          onStart={() => dispatch({ type: 'START_GAME' })}
+          onStart={() => dispatch({ type: 'START_GAME', raunchy: settings.raunchyMode })}
           onClear={() => {
             clearGameState();
             dispatch({ type: 'PLAY_AGAIN' });
@@ -134,13 +134,14 @@ export default function Home() {
           roundSeconds={settings.roundSeconds}
           itemsPerRound={settings.itemsPerRound}
           manualScoringDefault={settings.manualScoringDefault}
+          raunchyMode={settings.raunchyMode}
           hasPreviousCategory={state.categoryHistory.length > 0}
           onExpire={(mode) => {
             playTimerEnd(state.soundEnabled);
             dispatch({ type: 'END_WRITING', mode });
           }}
           onSkip={(mode) => dispatch({ type: 'END_WRITING', mode })}
-          onPass={() => dispatch({ type: 'PASS_CATEGORY' })}
+          onPass={() => dispatch({ type: 'PASS_CATEGORY', raunchy: settings.raunchyMode })}
           onGoBack={() => dispatch({ type: 'GO_BACK_CATEGORY' })}
           onRerollLetter={() => dispatch({ type: 'REROLL_LETTER' })}
         />
@@ -201,7 +202,7 @@ export default function Home() {
           players={state.players}
           roundNumber={state.roundNumber}
           roundsPerGame={settings.roundsPerGame}
-          onNextRound={() => dispatch({ type: 'NEXT_ROUND' })}
+          onNextRound={() => dispatch({ type: 'NEXT_ROUND', raunchy: settings.raunchyMode })}
           onShowWinner={handleShowWinner}
         />
       )}
@@ -210,7 +211,7 @@ export default function Home() {
         <FinalScreen
           players={state.players}
           roundsPlayed={state.roundNumber}
-          onPlayAnotherGame={() => dispatch({ type: 'PLAY_ANOTHER_GAME' })}
+          onPlayAnotherGame={() => dispatch({ type: 'PLAY_ANOTHER_GAME', raunchy: settings.raunchyMode })}
           onNewPlayers={() => {
             clearGameState();
             dispatch({ type: 'PLAY_AGAIN' });
