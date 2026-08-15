@@ -44,6 +44,7 @@ export interface GameState {
   players: Player[];
   usedCategories: string[];
   currentCategory: string | null;
+  currentCategoryIsRaunchy: boolean;
   currentBonusLetter: string | null;
   roundNumber: number;
   entryPlayerIndex: number;

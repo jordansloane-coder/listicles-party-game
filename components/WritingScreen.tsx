@@ -13,11 +13,13 @@ interface Props {
   roundSeconds: number;
   itemsPerRound: number;
   manualScoringDefault: boolean;
-  raunchyMode: boolean;
+  isRaunchyCategory: boolean;
+  raunchySettingOn: boolean;
   hasPreviousCategory: boolean;
   onExpire: (mode: 'entry' | 'manualScore') => void;
   onSkip: (mode: 'entry' | 'manualScore') => void;
   onPass: () => void;
+  onGetRaunchyOne: () => void;
   onGoBack: () => void;
   onRerollLetter: () => void;
 }
@@ -30,11 +32,13 @@ export default function WritingScreen({
   roundSeconds,
   itemsPerRound,
   manualScoringDefault,
-  raunchyMode,
+  isRaunchyCategory,
+  raunchySettingOn,
   hasPreviousCategory,
   onExpire,
   onSkip,
   onPass,
+  onGetRaunchyOne,
   onGoBack,
   onRerollLetter,
 }: Props) {
@@ -72,7 +76,7 @@ export default function WritingScreen({
       <PresentationCard
         category={category}
         bonusLetter={bonusLetter}
-        raunchyMode={raunchyMode}
+        isRaunchyCategory={isRaunchyCategory}
         everStarted={everStarted}
         running={running}
         remaining={remaining}
@@ -91,7 +95,7 @@ export default function WritingScreen({
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-8 max-w-md mx-auto w-full">
       <p className="text-sm font-bold uppercase tracking-wide opacity-50 flex items-center gap-2">
         Round {roundNumber} of {roundsPerGame}
-        {raunchyMode && (
+        {isRaunchyCategory && (
           <span className="normal-case tracking-normal font-extrabold text-hot bg-hot/10 rounded-full px-2 py-0.5 text-xs">
             🌶️ Raunchy
           </span>
@@ -118,6 +122,11 @@ export default function WritingScreen({
               <button onClick={onPass} className="underline">
                 🔀 Get a different one
               </button>
+              {!raunchySettingOn && (
+                <button onClick={onGetRaunchyOne} className="text-hot font-bold">
+                  🌶️ Give me a raunchy one
+                </button>
+              )}
             </div>
             <button onClick={onRerollLetter} className="underline">
               🎲 New bonus letter

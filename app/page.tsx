@@ -135,7 +135,8 @@ export default function Home() {
           roundSeconds={settings.roundSeconds}
           itemsPerRound={settings.itemsPerRound}
           manualScoringDefault={settings.manualScoringDefault}
-          raunchyMode={settings.raunchyMode}
+          isRaunchyCategory={state.currentCategoryIsRaunchy}
+          raunchySettingOn={settings.raunchyMode}
           hasPreviousCategory={state.categoryHistory.length > 0}
           onExpire={(mode) => {
             playTimerEnd(state.soundEnabled);
@@ -143,6 +144,7 @@ export default function Home() {
           }}
           onSkip={(mode) => dispatch({ type: 'END_WRITING', mode })}
           onPass={() => dispatch({ type: 'PASS_CATEGORY', raunchy: settings.raunchyMode })}
+          onGetRaunchyOne={() => dispatch({ type: 'PASS_CATEGORY', raunchy: true })}
           onGoBack={() => dispatch({ type: 'GO_BACK_CATEGORY' })}
           onRerollLetter={() => dispatch({ type: 'REROLL_LETTER' })}
         />

@@ -30,6 +30,7 @@ export function createInitialState(): GameState {
     players: [],
     usedCategories: [],
     currentCategory: null,
+    currentCategoryIsRaunchy: false,
     currentBonusLetter: null,
     roundNumber: 0,
     entryPlayerIndex: 0,
@@ -63,6 +64,7 @@ function startRound(state: GameState, raunchy: boolean): GameState {
     ...state,
     phase: 'writing',
     currentCategory: category,
+    currentCategoryIsRaunchy: raunchy,
     usedCategories: used,
     currentBonusLetter: randomBonusLetter(),
     roundNumber: state.roundNumber + 1,
@@ -96,6 +98,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return {
         ...state,
         currentCategory: category,
+        currentCategoryIsRaunchy: action.raunchy,
         usedCategories: used,
         categoryHistory: [...state.categoryHistory, state.currentCategory ?? ''],
       };
@@ -107,6 +110,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return {
         ...state,
         currentCategory: prev,
+        currentCategoryIsRaunchy: (CATEGORIES_ADULT as string[]).includes(prev),
         categoryHistory: state.categoryHistory.slice(0, -1),
       };
     }

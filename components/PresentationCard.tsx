@@ -5,7 +5,7 @@ import HourglassTimer from './HourglassTimer';
 interface Props {
   category: string;
   bonusLetter: string;
-  raunchyMode: boolean;
+  isRaunchyCategory: boolean;
   everStarted: boolean;
   running: boolean;
   remaining: number;
@@ -21,7 +21,7 @@ interface Props {
 export default function PresentationCard({
   category,
   bonusLetter,
-  raunchyMode,
+  isRaunchyCategory,
   everStarted,
   running,
   remaining,
@@ -57,7 +57,7 @@ export default function PresentationCard({
       <div className="w-full max-w-2xl rounded-[2rem] bg-white text-foreground shadow-2xl flex flex-col items-center gap-1.5 animate-pop-in shrink-0 p-[min(6vw,4vh)]">
         <p className="font-bold uppercase tracking-wide opacity-40 text-[clamp(0.75rem,min(3vw,2.2vh),1.1rem)] flex items-center gap-2">
           The category is
-          {raunchyMode && (
+          {isRaunchyCategory && (
             <span className="normal-case tracking-normal font-extrabold text-hot bg-hot/10 rounded-full px-2 py-0.5 text-[0.65em]">
               🌶️ Raunchy
             </span>
