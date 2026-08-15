@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "export NEXT_PUBLIC_BASE_PATH=/listicles-party-game && next build && node scripts/patch-base-path.mjs",
     "start": "next start",
     "lint": "eslint"
   },

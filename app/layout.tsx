@@ -8,18 +8,23 @@ const baloo = Baloo_2({
   weight: ['500', '600', '700', '800'],
 });
 
+// Next's basePath config rewrites its own internal script/asset URLs automatically,
+// but not string paths inside the metadata object — those need the GitHub Pages
+// project-page prefix (/listicles-party-game) applied by hand. Empty on Netlify/Vercel.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 export const metadata: Metadata = {
   title: 'Listicles',
   description: 'A party game of ridiculous lists, unique answers, and bonus letters.',
-  manifest: '/manifest.webmanifest',
+  manifest: `${basePath}/manifest.webmanifest`,
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Listicles',
   },
   icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/apple-touch-icon.png',
+    icon: `${basePath}/icons/icon-192.png`,
+    apple: `${basePath}/icons/apple-touch-icon.png`,
   },
 };
 
