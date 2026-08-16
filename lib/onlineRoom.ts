@@ -153,11 +153,12 @@ export async function startGame(code: string, room: OnlineRoom): Promise<void> {
   await startRound(code, { ...room, roundNumber: 0, usedCategories: [] });
 }
 
-export async function passCategory(code: string, room: OnlineRoom): Promise<void> {
-  const { category, usedCategories } = pickCategory(room.usedCategories, room.settings.raunchyMode);
+export async function passCategory(code: string, room: OnlineRoom, raunchy?: boolean): Promise<void> {
+  const wantRaunchy = raunchy ?? room.settings.raunchyMode;
+  const { category, usedCategories } = pickCategory(room.usedCategories, wantRaunchy);
   await update(roomRef(code), {
     currentCategory: category,
-    currentCategoryIsRaunchy: room.settings.raunchyMode,
+    currentCategoryIsRaunchy: wantRaunchy,
     usedCategories,
   });
 }
@@ -212,6 +213,36 @@ export async function finishWriting(code: string, room: OnlineRoom): Promise<voi
     phase: 'scoring',
     currentRoundResults: resultsByPlayer,
     players: updatedPlayers,
+  });
+}
+
+// Lets the host overrule the auto-detected unique/duplicate call on a single
+// answer — flips it and recomputes that player's subtotal and running total
+// to match, the same logic the solo game uses.
+export async function toggleItemStatus(
+  code: string,
+  room: OnlineRoom,
+  playerId: string,
+  itemIndex: number
+): Promise<void> {
+  const result = room.currentRoundResults?.[playerId];
+  const player = room.players[playerId];
+  if (!result || !player) return;
+
+  const bonus = (room.currentBonusLetter ?? 'A').toLowerCase();
+  const items = result.items.map((item, i) => {
+    if (i !== itemIndex || item.status === 'blank') return item;
+    if (item.status === 'unique') return { ...item, status: 'duplicate' as const, points: 0 };
+    const points = item.text.trim().toLowerCase().startsWith(bonus) ? 3 : 1;
+    return { ...item, status: 'unique' as const, points };
+  });
+  const subtotal = items.reduce((sum, it) => sum + it.points, 0);
+  const delta = subtotal - result.subtotal;
+
+  await update(roomRef(code), {
+    [`currentRoundResults/${playerId}/items`]: items,
+    [`currentRoundResults/${playerId}/subtotal`]: subtotal,
+    [`players/${playerId}/totalScore`]: player.totalScore + delta,
   });
 }
 

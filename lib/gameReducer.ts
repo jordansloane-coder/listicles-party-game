@@ -15,6 +15,7 @@ export type Action =
   | { type: 'SUBMIT_ENTRY'; playerId: string; items: string[] }
   | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
   | { type: 'EDIT_MANUAL_SCORES' }
+  | { type: 'TOGGLE_ITEM_STATUS'; playerId: string; itemIndex: number }
   | { type: 'GO_TO_DICE' }
   | { type: 'ROLL_DICE'; face: DieFace }
   | { type: 'CONFIRM_DICE_WINNERS'; playerIds: string[]; nominations: Record<string, string> }
@@ -184,6 +185,35 @@ export function gameReducer(state: GameState, action: Action): GameState {
     case 'EDIT_MANUAL_SCORES': {
       if (!state.lastRoundWasManual || state.phase !== 'dice') return state;
       return { ...state, phase: 'manualScore', diceFace: null };
+    }
+
+    // Lets the host overrule the auto-detected unique/duplicate call on a
+    // single answer — flips it and recomputes that player's subtotal and
+    // running total score to match.
+    case 'TOGGLE_ITEM_STATUS': {
+      const results = state.currentRoundResults;
+      if (!results) return state;
+      const bonus = (state.currentBonusLetter ?? 'A').toLowerCase();
+      let delta = 0;
+      const nextResults = results.map((r) => {
+        if (r.playerId !== action.playerId) return r;
+        const items = r.items.map((item, i) => {
+          if (i !== action.itemIndex || item.status === 'blank') return item;
+          if (item.status === 'unique') {
+            delta -= item.points;
+            return { ...item, status: 'duplicate' as const, points: 0 };
+          }
+          const points = item.text.trim().toLowerCase().startsWith(bonus) ? 3 : 1;
+          delta += points;
+          return { ...item, status: 'unique' as const, points };
+        });
+        const subtotal = items.reduce((sum, it) => sum + it.points, 0);
+        return { ...r, items, subtotal };
+      });
+      const players = state.players.map((p) =>
+        p.id === action.playerId ? { ...p, totalScore: p.totalScore + delta } : p
+      );
+      return { ...state, players, currentRoundResults: nextResults };
     }
 
     case 'GO_TO_DICE':

@@ -1,7 +1,7 @@
 'use client';
 
 import type { OnlineRoom } from '@/lib/onlineTypes';
-import { goToDice, justinGotPissed, skipDiceBonus } from '@/lib/onlineRoom';
+import { goToDice, justinGotPissed, skipDiceBonus, toggleItemStatus } from '@/lib/onlineRoom';
 import JustinPissedButton from '../JustinPissedButton';
 
 interface Props {
@@ -16,7 +16,10 @@ export default function OnlineScoringScreen({ room, isHost }: Props) {
     <div className="flex-1 flex flex-col px-5 py-8 gap-5 max-w-3xl mx-auto w-full">
       <div className="text-center animate-pop-in">
         <h2 className="text-2xl font-extrabold">{room.currentCategory}</h2>
-        <p className="text-sm opacity-60">Bonus letter: {room.currentBonusLetter} · green = unique, red = duplicate</p>
+        <p className="text-sm opacity-60">
+          Bonus letter: {room.currentBonusLetter} · green = counts, red = doesn&apos;t
+          {isHost ? ' · tap an answer to change it' : ''}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -33,20 +36,24 @@ export default function OnlineScoringScreen({ room, isHost }: Props) {
               </div>
               <ul className="flex flex-col gap-1.5">
                 {result.items.map((item, i) => (
-                  <li
-                    key={i}
-                    className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-sm ${
-                      item.status === 'unique'
-                        ? 'bg-mint/15'
-                        : item.status === 'duplicate'
-                          ? 'bg-hot/10 text-hot'
-                          : 'opacity-40'
-                    }`}
-                  >
-                    <span className="truncate">{item.text || <em>blank</em>}</span>
-                    <span className="font-bold shrink-0 ml-2">
-                      {item.status === 'blank' ? '—' : `+${item.points}`}
-                    </span>
+                  <li key={i}>
+                    <button
+                      type="button"
+                      disabled={!isHost || item.status === 'blank'}
+                      onClick={() => void toggleItemStatus(room.code, room, id, i)}
+                      className={`w-full flex items-center justify-between rounded-lg px-3 py-1.5 text-sm text-left transition-transform active:scale-95 ${
+                        item.status === 'unique'
+                          ? 'bg-mint/15'
+                          : item.status === 'duplicate'
+                            ? 'bg-hot/10 text-hot'
+                            : 'opacity-40'
+                      } ${isHost && item.status !== 'blank' ? 'cursor-pointer' : ''}`}
+                    >
+                      <span className="truncate">{item.text || <em>blank</em>}</span>
+                      <span className="font-bold shrink-0 ml-2">
+                        {item.status === 'blank' ? '—' : `+${item.points}`}
+                      </span>
+                    </button>
                   </li>
                 ))}
               </ul>

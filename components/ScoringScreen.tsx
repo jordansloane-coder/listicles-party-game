@@ -12,6 +12,7 @@ interface Props {
   onJustinPissed: () => void;
   onContinue: () => void;
   onSkipBonus: () => void;
+  onToggleItem: (playerId: string, itemIndex: number) => void;
 }
 
 export default function ScoringScreen({
@@ -23,12 +24,15 @@ export default function ScoringScreen({
   onJustinPissed,
   onContinue,
   onSkipBonus,
+  onToggleItem,
 }: Props) {
   return (
     <div className="flex-1 flex flex-col px-5 py-8 gap-5 max-w-3xl mx-auto w-full">
       <div className="text-center animate-pop-in">
         <h2 className="text-2xl font-extrabold">{category}</h2>
-        <p className="text-sm opacity-60">Bonus letter: {bonusLetter} · green = unique, red = duplicate</p>
+        <p className="text-sm opacity-60">
+          Bonus letter: {bonusLetter} · green = counts, red = doesn&apos;t · tap an answer to change it
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -45,20 +49,24 @@ export default function ScoringScreen({
               </div>
               <ul className="flex flex-col gap-1.5">
                 {result.items.map((item, i) => (
-                  <li
-                    key={i}
-                    className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-sm ${
-                      item.status === 'unique'
-                        ? 'bg-mint/15'
-                        : item.status === 'duplicate'
-                          ? 'bg-hot/10 text-hot'
-                          : 'opacity-40'
-                    }`}
-                  >
-                    <span className="truncate">{item.text || <em>blank</em>}</span>
-                    <span className="font-bold shrink-0 ml-2">
-                      {item.status === 'blank' ? '—' : `+${item.points}`}
-                    </span>
+                  <li key={i}>
+                    <button
+                      type="button"
+                      disabled={item.status === 'blank'}
+                      onClick={() => onToggleItem(player.id, i)}
+                      className={`w-full flex items-center justify-between rounded-lg px-3 py-1.5 text-sm text-left transition-transform active:scale-95 ${
+                        item.status === 'unique'
+                          ? 'bg-mint/15'
+                          : item.status === 'duplicate'
+                            ? 'bg-hot/10 text-hot'
+                            : 'opacity-40'
+                      } ${item.status === 'blank' ? '' : 'cursor-pointer'}`}
+                    >
+                      <span className="truncate">{item.text || <em>blank</em>}</span>
+                      <span className="font-bold shrink-0 ml-2">
+                        {item.status === 'blank' ? '—' : `+${item.points}`}
+                      </span>
+                    </button>
                   </li>
                 ))}
               </ul>

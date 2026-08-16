@@ -88,6 +88,11 @@ export default function OnlineWritingScreen({ room, playerId, isHost }: Props) {
               <button onClick={() => void passCategory(room.code, room)} className="underline">
                 🔀 Get a different one
               </button>
+              {!room.settings.raunchyMode && (
+                <button onClick={() => void passCategory(room.code, room, true)} className="text-hot font-bold underline">
+                  🌶️ Give me a raunchy one
+                </button>
+              )}
             </div>
             <button onClick={() => void rerollLetter(room.code)} className="underline">
               🎲 New bonus letter
