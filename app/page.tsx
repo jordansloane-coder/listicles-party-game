@@ -193,7 +193,10 @@ export default function Home() {
           onJustinPissed={() => dispatch({ type: 'JUSTIN_GOT_PISSED' })}
           onContinue={() => dispatch({ type: 'GO_TO_DICE' })}
           onSkipBonus={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
-          onToggleItem={(playerId, itemIndex) => dispatch({ type: 'TOGGLE_ITEM_STATUS', playerId, itemIndex })}
+          onSetItemCounts={(playerId, itemIndex, counts) =>
+            dispatch({ type: 'SET_ITEM_COUNTS', playerId, itemIndex, counts })
+          }
+          onSubmitPlayerScore={(playerId) => dispatch({ type: 'SUBMIT_PLAYER_SCORE', playerId })}
         />
       )}
 

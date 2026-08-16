@@ -3,7 +3,7 @@ import { ensureSignedIn, getFirebaseDb } from './firebase';
 import { generateRoomCode } from './roomCode';
 import { CATEGORIES } from './categories';
 import { CATEGORIES_ADULT } from './categoriesAdult';
-import { randomBonusLetter, scoreRound } from './scoring';
+import { normalize, randomBonusLetter, scoreItem } from './scoring';
 import type { DieFace } from './types';
 import { DEFAULT_ONLINE_SETTINGS, type OnlinePlayer, type OnlineRoom, type OnlineSettings } from './onlineTypes';
 
@@ -188,60 +188,62 @@ export async function resetTimer(code: string): Promise<void> {
 }
 
 // Host collects whatever every player has submitted so far (unsubmitted
-// players score as a blank list, same as leaving paper blank) and scores
-// the round with the same scoreRound() the solo game uses.
+// players score as a blank list, same as leaving paper blank). No
+// auto-scoring: every answer starts as "doesn't count" until the host
+// reviews that player and says otherwise (see setItemCounts /
+// submitPlayerScore). Player totalScores are untouched until then.
 export async function finishWriting(code: string, room: OnlineRoom): Promise<void> {
-  const players = Object.entries(room.players).map(([id, p]) => ({ id, name: p.name, totalScore: p.totalScore }));
-  const entries: Record<string, string[]> = {};
-  for (const [id, p] of Object.entries(room.players)) entries[id] = p.currentAnswers ?? [];
-
-  const results = scoreRound(
-    players.map((p) => ({ id: p.id, name: p.name, totalScore: p.totalScore })),
-    entries,
-    room.currentBonusLetter ?? 'A'
-  );
-
   const resultsByPlayer: OnlineRoom['currentRoundResults'] = {};
-  const updatedPlayers: Record<string, OnlinePlayer> = {};
-  for (const result of results) {
-    resultsByPlayer![result.playerId] = { items: result.items, subtotal: result.subtotal };
-    const existing = room.players[result.playerId];
-    updatedPlayers[result.playerId] = { ...existing, totalScore: existing.totalScore + result.subtotal };
+  for (const [id, p] of Object.entries(room.players)) {
+    const items = (p.currentAnswers ?? []).map((raw) => {
+      const norm = normalize(raw);
+      if (!norm) return { text: raw, points: 0, status: 'blank' as const };
+      return { text: raw, points: 0, status: 'duplicate' as const };
+    });
+    resultsByPlayer![id] = { items, subtotal: 0, appliedSubtotal: 0, submitted: false };
   }
 
   await update(roomRef(code), {
     phase: 'scoring',
     currentRoundResults: resultsByPlayer,
-    players: updatedPlayers,
   });
 }
 
-// Lets the host overrule the auto-detected unique/duplicate call on a single
-// answer — flips it and recomputes that player's subtotal and running total
-// to match, the same logic the solo game uses.
-export async function toggleItemStatus(
+// Host reviewing one player's answers taps counts/doesn't per item; this
+// only updates the live (not-yet-applied) subtotal shown during review.
+export async function setItemCounts(
   code: string,
   room: OnlineRoom,
   playerId: string,
-  itemIndex: number
+  itemIndex: number,
+  counts: boolean
 ): Promise<void> {
   const result = room.currentRoundResults?.[playerId];
-  const player = room.players[playerId];
-  if (!result || !player) return;
+  if (!result) return;
 
-  const bonus = (room.currentBonusLetter ?? 'A').toLowerCase();
-  const items = result.items.map((item, i) => {
-    if (i !== itemIndex || item.status === 'blank') return item;
-    if (item.status === 'unique') return { ...item, status: 'duplicate' as const, points: 0 };
-    const points = item.text.trim().toLowerCase().startsWith(bonus) ? 3 : 1;
-    return { ...item, status: 'unique' as const, points };
-  });
+  const items = result.items.map((item, i) =>
+    i === itemIndex ? scoreItem(item, counts, room.currentBonusLetter ?? 'A') : item
+  );
   const subtotal = items.reduce((sum, it) => sum + it.points, 0);
-  const delta = subtotal - result.subtotal;
 
   await update(roomRef(code), {
     [`currentRoundResults/${playerId}/items`]: items,
     [`currentRoundResults/${playerId}/subtotal`]: subtotal,
+  });
+}
+
+// Host hits "Submit" after reviewing a player — applies that player's live
+// subtotal to their running total score (diffed against whatever was
+// applied last time, so re-submitting after further edits is safe).
+export async function submitPlayerScore(code: string, room: OnlineRoom, playerId: string): Promise<void> {
+  const result = room.currentRoundResults?.[playerId];
+  const player = room.players[playerId];
+  if (!result || !player) return;
+
+  const delta = result.subtotal - result.appliedSubtotal;
+  await update(roomRef(code), {
+    [`currentRoundResults/${playerId}/appliedSubtotal`]: result.subtotal,
+    [`currentRoundResults/${playerId}/submitted`]: true,
     [`players/${playerId}/totalScore`]: player.totalScore + delta,
   });
 }

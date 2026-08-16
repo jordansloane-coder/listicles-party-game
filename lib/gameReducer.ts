@@ -1,6 +1,6 @@
 import { CATEGORIES } from './categories';
 import { CATEGORIES_ADULT } from './categoriesAdult';
-import { randomBonusLetter, scoreRound } from './scoring';
+import { buildReviewResults, randomBonusLetter, scoreItem } from './scoring';
 import type { DieFace, GameState, Player, RoundRecord } from './types';
 
 export type Action =
@@ -15,7 +15,8 @@ export type Action =
   | { type: 'SUBMIT_ENTRY'; playerId: string; items: string[] }
   | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
   | { type: 'EDIT_MANUAL_SCORES' }
-  | { type: 'TOGGLE_ITEM_STATUS'; playerId: string; itemIndex: number }
+  | { type: 'SET_ITEM_COUNTS'; playerId: string; itemIndex: number; counts: boolean }
+  | { type: 'SUBMIT_PLAYER_SCORE'; playerId: string }
   | { type: 'GO_TO_DICE' }
   | { type: 'ROLL_DICE'; face: DieFace }
   | { type: 'CONFIRM_DICE_WINNERS'; playerIds: string[]; nominations: Record<string, string> }
@@ -143,15 +144,13 @@ export function gameReducer(state: GameState, action: Action): GameState {
       if (nextIndex < state.players.length) {
         return { ...state, roundEntries, entryPlayerIndex: nextIndex };
       }
-      const results = scoreRound(state.players, roundEntries, state.currentBonusLetter ?? 'A');
-      const players = state.players.map((p) => {
-        const result = results.find((r) => r.playerId === p.id);
-        return result ? { ...p, totalScore: p.totalScore + result.subtotal } : p;
-      });
+      // No auto-scoring: every answer starts as "doesn't count" until the
+      // host reviews that player and says otherwise (see SET_ITEM_COUNTS /
+      // SUBMIT_PLAYER_SCORE). totalScore is untouched until then.
+      const results = buildReviewResults(state.players, roundEntries);
       return {
         ...state,
         roundEntries,
-        players,
         currentRoundResults: results,
         lastRoundWasManual: false,
         phase: 'scoring',
@@ -167,6 +166,8 @@ export function gameReducer(state: GameState, action: Action): GameState {
         playerId: p.id,
         items: [],
         subtotal: action.scores[p.id] ?? 0,
+        appliedSubtotal: action.scores[p.id] ?? 0,
+        submitted: true,
       }));
       const players = state.players.map((p) => {
         const prevSubtotal = previous.find((r) => r.playerId === p.id)?.subtotal ?? 0;
@@ -187,31 +188,36 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return { ...state, phase: 'manualScore', diceFace: null };
     }
 
-    // Lets the host overrule the auto-detected unique/duplicate call on a
-    // single answer — flips it and recomputes that player's subtotal and
-    // running total score to match.
-    case 'TOGGLE_ITEM_STATUS': {
+    // Host reviewing one player's answers taps counts/doesn't per item; this
+    // only updates the live (not-yet-applied) subtotal shown during review.
+    case 'SET_ITEM_COUNTS': {
       const results = state.currentRoundResults;
       if (!results) return state;
-      const bonus = (state.currentBonusLetter ?? 'A').toLowerCase();
-      let delta = 0;
       const nextResults = results.map((r) => {
         if (r.playerId !== action.playerId) return r;
-        const items = r.items.map((item, i) => {
-          if (i !== action.itemIndex || item.status === 'blank') return item;
-          if (item.status === 'unique') {
-            delta -= item.points;
-            return { ...item, status: 'duplicate' as const, points: 0 };
-          }
-          const points = item.text.trim().toLowerCase().startsWith(bonus) ? 3 : 1;
-          delta += points;
-          return { ...item, status: 'unique' as const, points };
-        });
+        const items = r.items.map((item, i) =>
+          i === action.itemIndex ? scoreItem(item, action.counts, state.currentBonusLetter ?? 'A') : item
+        );
         const subtotal = items.reduce((sum, it) => sum + it.points, 0);
         return { ...r, items, subtotal };
       });
+      return { ...state, currentRoundResults: nextResults };
+    }
+
+    // Host hits "Submit" after reviewing a player — applies that player's
+    // live subtotal to their running total score (diffed against whatever
+    // was applied last time, so re-submitting after further edits is safe).
+    case 'SUBMIT_PLAYER_SCORE': {
+      const results = state.currentRoundResults;
+      if (!results) return state;
+      const result = results.find((r) => r.playerId === action.playerId);
+      if (!result) return state;
+      const delta = result.subtotal - result.appliedSubtotal;
       const players = state.players.map((p) =>
         p.id === action.playerId ? { ...p, totalScore: p.totalScore + delta } : p
+      );
+      const nextResults = results.map((r) =>
+        r.playerId === action.playerId ? { ...r, appliedSubtotal: r.subtotal, submitted: true } : r
       );
       return { ...state, players, currentRoundResults: nextResults };
     }

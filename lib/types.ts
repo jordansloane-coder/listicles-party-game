@@ -6,6 +6,8 @@ export interface Player {
 
 export type DieFace = 'Trashy' | 'WTF' | 'Ew' | 'Hot' | 'Basic' | 'OMG';
 
+// status: 'unique' = host says it counts, 'duplicate' = host says it doesn't,
+// 'blank' = no answer was written (never counts, not host-editable).
 export type ItemScore = {
   text: string;
   points: number;
@@ -15,7 +17,9 @@ export type ItemScore = {
 export interface PlayerRoundResult {
   playerId: string;
   items: ItemScore[];
-  subtotal: number;
+  subtotal: number; // live, recomputed as the host taps through items
+  appliedSubtotal: number; // what's already been added to totalScore (0 until Submit)
+  submitted: boolean; // host has hit Submit for this player at least once this round
 }
 
 export interface RoundRecord {

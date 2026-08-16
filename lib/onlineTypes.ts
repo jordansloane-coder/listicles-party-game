@@ -28,7 +28,9 @@ export interface OnlinePlayer {
 
 export interface OnlineRoundResult {
   items: ItemScore[];
-  subtotal: number;
+  subtotal: number; // live, recomputed as the host taps through items
+  appliedSubtotal: number; // what's already been added to totalScore (0 until Submit)
+  submitted: boolean; // host has hit Submit for this player at least once this round
 }
 
 // Everything lives under rooms/{code} in Firebase Realtime Database. Only the
