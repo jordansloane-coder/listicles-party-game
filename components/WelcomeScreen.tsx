@@ -9,6 +9,7 @@ interface Props {
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
   onReorderPlayers: (orderedIds: string[]) => void;
+  onGoOnline: () => void;
   onStart: () => void;
   onClear: () => void;
 }
@@ -38,6 +39,7 @@ export default function WelcomeScreen({
   onAddPlayer,
   onRemovePlayer,
   onReorderPlayers,
+  onGoOnline,
   onStart,
   onClear,
 }: Props) {
@@ -194,6 +196,13 @@ export default function WelcomeScreen({
         <h1 className="text-5xl font-extrabold text-hot drop-shadow-sm">Listicles</h1>
         <p className="mt-2 text-lg opacity-70">Ridiculous lists. Real bragging rights. Justin getting pissed.</p>
       </div>
+
+      <button
+        onClick={onGoOnline}
+        className="w-full rounded-2xl bg-electric/10 text-electric font-bold py-3 shadow-inner active:scale-95 transition-transform"
+      >
+        🌐 Play online — everyone joins from their own phone
+      </button>
 
       <form onSubmit={submit} className="w-full flex gap-2">
         <input

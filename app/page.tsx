@@ -20,6 +20,7 @@ import SettingsPanel from '@/components/SettingsPanel';
 import HistoryPanel from '@/components/HistoryPanel';
 import RulesPanel from '@/components/RulesPanel';
 import PrintScorecardPanel from '@/components/PrintScorecardPanel';
+import OnlineGame from '@/components/online/OnlineGame';
 
 function rankPlayers(players: Player[]): BankedGame['results'] {
   const sorted = [...players].sort((a, b) => b.totalScore - a.totalScore);
@@ -31,6 +32,7 @@ function rankPlayers(players: Player[]): BankedGame['results'] {
 }
 
 export default function Home() {
+  const [appMode, setAppMode] = useState<'solo' | 'online'>('solo');
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
   const hydrated = useRef(false);
 
@@ -103,6 +105,10 @@ export default function Home() {
     dispatch({ type: 'END_GAME' });
   }
 
+  if (appMode === 'online') {
+    return <OnlineGame onExit={() => setAppMode('solo')} />;
+  }
+
   return (
     <div className="flex-1 flex flex-col">
       <Header
@@ -118,6 +124,7 @@ export default function Home() {
           onAddPlayer={(name) => dispatch({ type: 'ADD_PLAYER', name })}
           onRemovePlayer={(id) => dispatch({ type: 'REMOVE_PLAYER', id })}
           onReorderPlayers={(orderedIds) => dispatch({ type: 'REORDER_PLAYERS', orderedIds })}
+          onGoOnline={() => setAppMode('online')}
           onStart={() => dispatch({ type: 'START_GAME', raunchy: settings.raunchyMode })}
           onClear={() => {
             clearGameState();
