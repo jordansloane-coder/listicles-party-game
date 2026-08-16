@@ -89,6 +89,28 @@ body {
   animation: shake 0.4s ease-in-out;
 }
 
+@keyframes firework-particle {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy))) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.firework-particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: firework-particle 0.7s ease-out forwards;
+}
+
 @media print {
   @page {
     size: letter landscape;

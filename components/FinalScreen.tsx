@@ -5,11 +5,18 @@ import type { Player } from '@/lib/types';
 interface Props {
   players: Player[];
   roundsPlayed: number;
+  justinPissedCount: number;
   onPlayAnotherGame: () => void;
   onNewPlayers: () => void;
 }
 
-export default function FinalScreen({ players, roundsPlayed, onPlayAnotherGame, onNewPlayers }: Props) {
+export default function FinalScreen({
+  players,
+  roundsPlayed,
+  justinPissedCount,
+  onPlayAnotherGame,
+  onNewPlayers,
+}: Props) {
   const sorted = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sorted[0];
 
@@ -41,6 +48,12 @@ export default function FinalScreen({ players, roundsPlayed, onPlayAnotherGame, 
           ))}
         </div>
       </div>
+
+      {justinPissedCount > 0 && (
+        <p className="text-center font-bold text-sm opacity-60 animate-pop-in">
+          🎉 Justin got pissed {justinPissedCount} time{justinPissedCount === 1 ? '' : 's'} this game
+        </p>
+      )}
 
       <div className="mt-auto w-full flex flex-col gap-3">
         <button

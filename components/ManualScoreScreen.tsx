@@ -2,15 +2,25 @@
 
 import { useState } from 'react';
 import type { Player, PlayerRoundResult } from '@/lib/types';
+import JustinPissedButton from './JustinPissedButton';
 
 interface Props {
   players: Player[];
   category: string;
   existingResults?: PlayerRoundResult[] | null;
+  justinPissedCount: number;
+  onJustinPissed: () => void;
   onSubmit: (scores: Record<string, number>) => void;
 }
 
-export default function ManualScoreScreen({ players, category, existingResults, onSubmit }: Props) {
+export default function ManualScoreScreen({
+  players,
+  category,
+  existingResults,
+  justinPissedCount,
+  onJustinPissed,
+  onSubmit,
+}: Props) {
   const isEditing = !!existingResults?.length;
   const [scores, setScores] = useState<Record<string, string>>(() => {
     if (!existingResults) return {};
@@ -60,6 +70,8 @@ export default function ManualScoreScreen({ players, category, existingResults, 
           </label>
         ))}
       </div>
+
+      <JustinPissedButton count={justinPissedCount} onTap={onJustinPissed} />
 
       <button
         onClick={handleSubmit}

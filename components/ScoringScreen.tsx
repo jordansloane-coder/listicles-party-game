@@ -1,17 +1,29 @@
 'use client';
 
 import type { Player, PlayerRoundResult } from '@/lib/types';
+import JustinPissedButton from './JustinPissedButton';
 
 interface Props {
   players: Player[];
   results: PlayerRoundResult[];
   category: string;
   bonusLetter: string;
+  justinPissedCount: number;
+  onJustinPissed: () => void;
   onContinue: () => void;
   onSkipBonus: () => void;
 }
 
-export default function ScoringScreen({ players, results, category, bonusLetter, onContinue, onSkipBonus }: Props) {
+export default function ScoringScreen({
+  players,
+  results,
+  category,
+  bonusLetter,
+  justinPissedCount,
+  onJustinPissed,
+  onContinue,
+  onSkipBonus,
+}: Props) {
   return (
     <div className="flex-1 flex flex-col px-5 py-8 gap-5 max-w-3xl mx-auto w-full">
       <div className="text-center animate-pop-in">
@@ -68,6 +80,8 @@ export default function ScoringScreen({ players, results, category, bonusLetter,
             ))}
         </div>
       </div>
+
+      <JustinPissedButton count={justinPissedCount} onTap={onJustinPissed} />
 
       <div className="mt-auto w-full flex flex-col gap-2">
         <button

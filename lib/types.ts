@@ -55,4 +55,5 @@ export interface GameState {
   diceFace: DieFace | null;
   history: RoundRecord[];
   soundEnabled: boolean;
+  justinPissedCount: number;
 }

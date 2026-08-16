@@ -170,6 +170,8 @@ export default function Home() {
           players={state.players}
           category={state.currentCategory}
           existingResults={state.currentRoundResults}
+          justinPissedCount={state.justinPissedCount}
+          onJustinPissed={() => dispatch({ type: 'JUSTIN_GOT_PISSED' })}
           onSubmit={(scores) => dispatch({ type: 'SUBMIT_MANUAL_SCORES', scores })}
         />
       )}
@@ -180,6 +182,8 @@ export default function Home() {
           results={state.currentRoundResults}
           category={state.currentCategory}
           bonusLetter={state.currentBonusLetter}
+          justinPissedCount={state.justinPissedCount}
+          onJustinPissed={() => dispatch({ type: 'JUSTIN_GOT_PISSED' })}
           onContinue={() => dispatch({ type: 'GO_TO_DICE' })}
           onSkipBonus={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
         />
@@ -219,6 +223,7 @@ export default function Home() {
         <FinalScreen
           players={state.players}
           roundsPlayed={state.roundNumber}
+          justinPissedCount={state.justinPissedCount}
           onPlayAnotherGame={() => dispatch({ type: 'PLAY_ANOTHER_GAME', raunchy: settings.raunchyMode })}
           onNewPlayers={() => {
             clearGameState();

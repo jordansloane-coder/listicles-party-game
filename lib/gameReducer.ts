@@ -24,6 +24,7 @@ export type Action =
   | { type: 'PLAY_ANOTHER_GAME'; raunchy: boolean }
   | { type: 'PLAY_AGAIN' }
   | { type: 'TOGGLE_SOUND' }
+  | { type: 'JUSTIN_GOT_PISSED' }
   | { type: 'LOAD_STATE'; state: GameState };
 
 export function createInitialState(): GameState {
@@ -43,6 +44,7 @@ export function createInitialState(): GameState {
     diceFace: null,
     history: [],
     soundEnabled: true,
+    justinPissedCount: 0,
   };
 }
 
@@ -235,7 +237,10 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'PLAY_ANOTHER_GAME': {
       const players = state.players.map((p) => ({ ...p, totalScore: 0 }));
-      return startRound({ ...state, players, history: [], roundNumber: 0 }, action.raunchy);
+      return startRound(
+        { ...state, players, history: [], roundNumber: 0, justinPissedCount: 0 },
+        action.raunchy
+      );
     }
 
     case 'PLAY_AGAIN':
@@ -244,8 +249,12 @@ export function gameReducer(state: GameState, action: Action): GameState {
     case 'TOGGLE_SOUND':
       return { ...state, soundEnabled: !state.soundEnabled };
 
+    case 'JUSTIN_GOT_PISSED':
+      return { ...state, justinPissedCount: state.justinPissedCount + 1 };
+
     case 'LOAD_STATE':
-      return action.state;
+      // Old persisted states from before this field existed won't have it.
+      return { ...action.state, justinPissedCount: action.state.justinPissedCount ?? 0 };
 
     default:
       return state;
