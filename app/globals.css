@@ -111,6 +111,35 @@ body {
   animation: firework-particle 0.7s ease-out forwards;
 }
 
+@keyframes flail {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  15% {
+    transform: rotate(-12deg) translateY(-4px);
+  }
+  30% {
+    transform: rotate(10deg) translateY(-8px);
+  }
+  45% {
+    transform: rotate(-9deg) translateY(-2px);
+  }
+  60% {
+    transform: rotate(8deg) translateY(-6px);
+  }
+  75% {
+    transform: rotate(-5deg) translateY(-2px);
+  }
+  90% {
+    transform: rotate(3deg) translateY(0);
+  }
+}
+
+.animate-flail {
+  animation: flail 0.7s ease-in-out;
+}
+
 @media print {
   @page {
     size: letter landscape;
