@@ -27,6 +27,12 @@ interface DragState {
   pointerId: number;
 }
 
+interface FloatRect {
+  left: number;
+  width: number;
+  height: number;
+}
+
 export default function WelcomeScreen({
   players,
   onAddPlayer,
@@ -41,7 +47,11 @@ export default function WelcomeScreen({
 
   const [order, setOrder] = useState<string[]>(() => players.map((p) => p.id));
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState(0);
+  // The floating clone is pinned directly to the pointer's Y position — never
+  // reset or accumulated, so it can't "snap" when the underlying list reorders.
+  const [pointerY, setPointerY] = useState(0);
+  const [grabOffsetY, setGrabOffsetY] = useState(0);
+  const [floatRect, setFloatRect] = useState<FloatRect | null>(null);
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const dragState = useRef<DragState | null>(null);
 
@@ -107,10 +117,16 @@ export default function WelcomeScreen({
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const startY = e.clientY;
     const timer = window.setTimeout(() => {
+      const el = rowRefs.current.get(id);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setFloatRect({ left: rect.left, width: rect.width, height: rect.height });
+        setGrabOffsetY(startY - rect.top);
+      }
+      setPointerY(startY);
       setDraggingId(id);
-      setDragOffset(0);
       try {
-        rowRefs.current.get(id)?.setPointerCapture(e.pointerId);
+        el?.setPointerCapture(e.pointerId);
       } catch {
         // Pointer may no longer be active (e.g. the OS already cancelled the
         // gesture) — the drag still works via document-level move tracking.
@@ -122,10 +138,9 @@ export default function WelcomeScreen({
   function handlePointerMove(e: React.PointerEvent<HTMLLIElement>) {
     const ds = dragState.current;
     if (!ds) return;
-    const deltaY = e.clientY - ds.startY;
 
     if (!draggingId) {
-      if (Math.abs(deltaY) > MOVE_CANCEL_PX && ds.pressTimer) {
+      if (Math.abs(e.clientY - ds.startY) > MOVE_CANCEL_PX && ds.pressTimer) {
         window.clearTimeout(ds.pressTimer);
         dragState.current = null;
       }
@@ -133,22 +148,22 @@ export default function WelcomeScreen({
     }
 
     e.preventDefault();
-    setDragOffset(deltaY);
+    setPointerY(e.clientY);
 
+    // Reorder detection compares the floating clone's live center against the
+    // natural (in-flow) rows around it — the dragged row itself is hidden from
+    // flow while floating, so only the others need measuring here.
+    const floatCenter = e.clientY - grabOffsetY + (floatRect?.height ?? 0) / 2;
     const draggedIndex = order.indexOf(draggingId);
-    const rows = order.map((id) => rowRefs.current.get(id));
-    const draggedEl = rows[draggedIndex];
-    if (!draggedEl) return;
-    const draggedRect = draggedEl.getBoundingClientRect();
-    const draggedCenter = draggedRect.top + draggedRect.height / 2 + deltaY;
-
     let newIndex = draggedIndex;
-    rows.forEach((row, i) => {
-      if (!row || i === draggedIndex) return;
+    order.forEach((id, i) => {
+      if (i === draggedIndex) return;
+      const row = rowRefs.current.get(id);
+      if (!row) return;
       const rect = row.getBoundingClientRect();
       const center = rect.top + rect.height / 2;
-      if (i < draggedIndex && draggedCenter < center) newIndex = Math.min(newIndex, i);
-      if (i > draggedIndex && draggedCenter > center) newIndex = Math.max(newIndex, i);
+      if (i < draggedIndex && floatCenter < center) newIndex = Math.min(newIndex, i);
+      if (i > draggedIndex && floatCenter > center) newIndex = Math.max(newIndex, i);
     });
 
     if (newIndex !== draggedIndex) {
@@ -158,8 +173,6 @@ export default function WelcomeScreen({
         next.splice(newIndex, 0, moved);
         return next;
       });
-      ds.startY = e.clientY;
-      setDragOffset(0);
     }
   }
 
@@ -169,10 +182,11 @@ export default function WelcomeScreen({
     if (draggingId) onReorderPlayers(order);
     dragState.current = null;
     setDraggingId(null);
-    setDragOffset(0);
+    setFloatRect(null);
   }
 
   const orderedPlayers = order.map((id) => players.find((p) => p.id === id)).filter((p): p is Player => !!p);
+  const draggingPlayer = draggingId ? orderedPlayers.find((p) => p.id === draggingId) : null;
 
   return (
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-6 max-w-md mx-auto w-full">
@@ -266,14 +280,8 @@ export default function WelcomeScreen({
               onPointerMove={handlePointerMove}
               onPointerUp={endDrag}
               onPointerCancel={endDrag}
-              style={{
-                touchAction: 'none',
-                transform: isDragging ? `translateY(${dragOffset}px) scale(1.03)` : undefined,
-                zIndex: isDragging ? 10 : undefined,
-              }}
-              className={`animate-pop-in flex items-center justify-between rounded-2xl bg-card px-4 py-3 shadow select-none cursor-grab active:cursor-grabbing ${
-                isDragging ? 'shadow-xl relative' : ''
-              }`}
+              style={{ touchAction: 'none', visibility: isDragging ? 'hidden' : undefined }}
+              className="animate-pop-in flex items-center justify-between rounded-2xl bg-card px-4 py-3 shadow select-none cursor-grab active:cursor-grabbing"
             >
               <span className="flex items-center gap-2 font-semibold text-lg">
                 <span className="opacity-30 text-sm">⠿</span>
@@ -293,6 +301,31 @@ export default function WelcomeScreen({
           <p className="text-center opacity-50 py-4">Add at least 1 player to start.</p>
         )}
       </ul>
+
+      {/* Floating clone, pinned to the pointer — decoupled from the list's own
+          flow so it never snaps when the underlying order changes beneath it. */}
+      {draggingPlayer && floatRect && (
+        <li
+          style={{
+            position: 'fixed',
+            top: pointerY - grabOffsetY,
+            left: floatRect.left,
+            width: floatRect.width,
+            height: floatRect.height,
+            zIndex: 100,
+            pointerEvents: 'none',
+          }}
+          className="flex items-center justify-between rounded-2xl bg-card px-4 py-3 shadow-2xl scale-105 list-none"
+        >
+          <span className="flex items-center gap-2 font-semibold text-lg">
+            <span className="opacity-30 text-sm">⠿</span>
+            {order.indexOf(draggingPlayer.id) + 1}. {draggingPlayer.name}
+          </span>
+          <span className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold text-lg shrink-0 flex items-center justify-center">
+            ×
+          </span>
+        </li>
+      )}
 
       <div className="mt-auto w-full flex flex-col gap-3">
         <button
