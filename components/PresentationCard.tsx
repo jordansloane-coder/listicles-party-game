@@ -54,7 +54,7 @@ export default function PresentationCard({
       {/* Every font size below scales off whichever of viewport width/height is
           more constrained (via min(vw,vh)), since a wide-but-short landscape
           phone screen needs much smaller text than its width alone implies. */}
-      <div className="w-full max-w-2xl rounded-[2rem] bg-white text-foreground shadow-2xl flex flex-col items-center gap-1.5 animate-pop-in shrink-0 p-[min(6vw,4vh)]">
+      <div className="w-full max-w-2xl rounded-[2rem] bg-white text-[#2a0f0d] shadow-2xl flex flex-col items-center gap-1.5 animate-pop-in shrink-0 p-[min(6vw,4vh)]">
         <p className="font-bold uppercase tracking-wide opacity-40 text-[clamp(0.75rem,min(3vw,2.2vh),1.1rem)] flex items-center gap-2">
           The category is
           {isRaunchyCategory && (
