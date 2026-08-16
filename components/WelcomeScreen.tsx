@@ -8,11 +8,12 @@ interface Props {
   players: Player[];
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
+  onMovePlayer: (id: string, direction: 'up' | 'down') => void;
   onStart: () => void;
   onClear: () => void;
 }
 
-export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, onStart, onClear }: Props) {
+export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, onMovePlayer, onStart, onClear }: Props) {
   const [name, setName] = useState('');
   const [frequentPlayers, setFrequentPlayers] = useState<string[]>(DEFAULT_FREQUENT_PLAYERS);
   const [newFrequentName, setNewFrequentName] = useState('');
@@ -146,13 +147,31 @@ export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, on
             <span className="font-semibold text-lg">
               {i + 1}. {p.name}
             </span>
-            <button
-              onClick={() => onRemovePlayer(p.id)}
-              aria-label={`Remove ${p.name}`}
-              className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold text-lg"
-            >
-              ×
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => onMovePlayer(p.id, 'up')}
+                disabled={i === 0}
+                aria-label={`Move ${p.name} up`}
+                className="w-8 h-8 rounded-full bg-background font-bold text-sm disabled:opacity-25"
+              >
+                ▲
+              </button>
+              <button
+                onClick={() => onMovePlayer(p.id, 'down')}
+                disabled={i === players.length - 1}
+                aria-label={`Move ${p.name} down`}
+                className="w-8 h-8 rounded-full bg-background font-bold text-sm disabled:opacity-25"
+              >
+                ▼
+              </button>
+              <button
+                onClick={() => onRemovePlayer(p.id)}
+                aria-label={`Remove ${p.name}`}
+                className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold text-lg"
+              >
+                ×
+              </button>
+            </div>
           </li>
         ))}
         {players.length === 0 && (
