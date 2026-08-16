@@ -6,7 +6,7 @@ import type { DieFace, GameState, Player, RoundRecord } from './types';
 export type Action =
   | { type: 'ADD_PLAYER'; name: string }
   | { type: 'REMOVE_PLAYER'; id: string }
-  | { type: 'MOVE_PLAYER'; id: string; direction: 'up' | 'down' }
+  | { type: 'REORDER_PLAYERS'; orderedIds: string[] }
   | { type: 'START_GAME'; raunchy: boolean }
   | { type: 'PASS_CATEGORY'; raunchy: boolean }
   | { type: 'GO_BACK_CATEGORY' }
@@ -92,12 +92,10 @@ export function gameReducer(state: GameState, action: Action): GameState {
     case 'REMOVE_PLAYER':
       return { ...state, players: state.players.filter((p) => p.id !== action.id) };
 
-    case 'MOVE_PLAYER': {
-      const index = state.players.findIndex((p) => p.id === action.id);
-      const swapWith = action.direction === 'up' ? index - 1 : index + 1;
-      if (index === -1 || swapWith < 0 || swapWith >= state.players.length) return state;
-      const players = [...state.players];
-      [players[index], players[swapWith]] = [players[swapWith], players[index]];
+    case 'REORDER_PLAYERS': {
+      const byId = new Map(state.players.map((p) => [p.id, p]));
+      const players = action.orderedIds.map((id) => byId.get(id)).filter((p): p is Player => !!p);
+      if (players.length !== state.players.length) return state;
       return { ...state, players };
     }
 

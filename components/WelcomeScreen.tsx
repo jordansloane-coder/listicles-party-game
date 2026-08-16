@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Player } from '@/lib/types';
 import { DEFAULT_FREQUENT_PLAYERS, loadFrequentPlayers, saveFrequentPlayers } from '@/lib/frequentPlayers';
 
@@ -8,19 +8,58 @@ interface Props {
   players: Player[];
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
-  onMovePlayer: (id: string, direction: 'up' | 'down') => void;
+  onReorderPlayers: (orderedIds: string[]) => void;
   onStart: () => void;
   onClear: () => void;
 }
 
-export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, onMovePlayer, onStart, onClear }: Props) {
+// How long a press must hold before it becomes a drag, so a quick tap (e.g. on
+// the remove button) never gets mistaken for the start of a reorder.
+const LONG_PRESS_MS = 220;
+// If the finger/mouse moves more than this before the long-press timer fires,
+// treat it as a scroll attempt and cancel the drag instead of starting one.
+const MOVE_CANCEL_PX = 8;
+
+interface DragState {
+  id: string;
+  startY: number;
+  pressTimer: number | null;
+  pointerId: number;
+}
+
+export default function WelcomeScreen({
+  players,
+  onAddPlayer,
+  onRemovePlayer,
+  onReorderPlayers,
+  onStart,
+  onClear,
+}: Props) {
   const [name, setName] = useState('');
   const [frequentPlayers, setFrequentPlayers] = useState<string[]>(DEFAULT_FREQUENT_PLAYERS);
   const [newFrequentName, setNewFrequentName] = useState('');
 
+  const [order, setOrder] = useState<string[]>(() => players.map((p) => p.id));
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+  const dragState = useRef<DragState | null>(null);
+
   useEffect(() => {
     setFrequentPlayers(loadFrequentPlayers());
   }, []);
+
+  // Keep local render order in sync with the players prop (adds/removes),
+  // preserving whatever order is already on screen for ids that persist.
+  useEffect(() => {
+    setOrder((prev) => {
+      const incomingIds = players.map((p) => p.id);
+      const stillPresent = prev.filter((id) => incomingIds.includes(id));
+      const newOnes = incomingIds.filter((id) => !stillPresent.includes(id));
+      const merged = [...stillPresent, ...newOnes];
+      return merged.length === incomingIds.length ? merged : incomingIds;
+    });
+  }, [players]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +102,77 @@ export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, on
     setFrequentPlayers(next);
     saveFrequentPlayers(next);
   }
+
+  function handlePointerDown(id: string, e: React.PointerEvent<HTMLLIElement>) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const startY = e.clientY;
+    const timer = window.setTimeout(() => {
+      setDraggingId(id);
+      setDragOffset(0);
+      try {
+        rowRefs.current.get(id)?.setPointerCapture(e.pointerId);
+      } catch {
+        // Pointer may no longer be active (e.g. the OS already cancelled the
+        // gesture) — the drag still works via document-level move tracking.
+      }
+    }, LONG_PRESS_MS);
+    dragState.current = { id, startY, pressTimer: timer, pointerId: e.pointerId };
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLLIElement>) {
+    const ds = dragState.current;
+    if (!ds) return;
+    const deltaY = e.clientY - ds.startY;
+
+    if (!draggingId) {
+      if (Math.abs(deltaY) > MOVE_CANCEL_PX && ds.pressTimer) {
+        window.clearTimeout(ds.pressTimer);
+        dragState.current = null;
+      }
+      return;
+    }
+
+    e.preventDefault();
+    setDragOffset(deltaY);
+
+    const draggedIndex = order.indexOf(draggingId);
+    const rows = order.map((id) => rowRefs.current.get(id));
+    const draggedEl = rows[draggedIndex];
+    if (!draggedEl) return;
+    const draggedRect = draggedEl.getBoundingClientRect();
+    const draggedCenter = draggedRect.top + draggedRect.height / 2 + deltaY;
+
+    let newIndex = draggedIndex;
+    rows.forEach((row, i) => {
+      if (!row || i === draggedIndex) return;
+      const rect = row.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      if (i < draggedIndex && draggedCenter < center) newIndex = Math.min(newIndex, i);
+      if (i > draggedIndex && draggedCenter > center) newIndex = Math.max(newIndex, i);
+    });
+
+    if (newIndex !== draggedIndex) {
+      setOrder((prev) => {
+        const next = [...prev];
+        const [moved] = next.splice(draggedIndex, 1);
+        next.splice(newIndex, 0, moved);
+        return next;
+      });
+      ds.startY = e.clientY;
+      setDragOffset(0);
+    }
+  }
+
+  function endDrag() {
+    const ds = dragState.current;
+    if (ds?.pressTimer) window.clearTimeout(ds.pressTimer);
+    if (draggingId) onReorderPlayers(order);
+    dragState.current = null;
+    setDraggingId(null);
+    setDragOffset(0);
+  }
+
+  const orderedPlayers = order.map((id) => players.find((p) => p.id === id)).filter((p): p is Player => !!p);
 
   return (
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-6 max-w-md mx-auto w-full">
@@ -138,42 +248,47 @@ export default function WelcomeScreen({ players, onAddPlayer, onRemovePlayer, on
         </div>
       </details>
 
+      {players.length > 0 && (
+        <p className="text-xs opacity-40 -mb-3 self-start">Press and hold a player to drag them into a new order.</p>
+      )}
+
       <ul className="w-full flex flex-col gap-2">
-        {players.map((p, i) => (
-          <li
-            key={p.id}
-            className="animate-pop-in flex items-center justify-between rounded-2xl bg-card px-4 py-3 shadow"
-          >
-            <span className="font-semibold text-lg">
-              {i + 1}. {p.name}
-            </span>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => onMovePlayer(p.id, 'up')}
-                disabled={i === 0}
-                aria-label={`Move ${p.name} up`}
-                className="w-8 h-8 rounded-full bg-background font-bold text-sm disabled:opacity-25"
-              >
-                ▲
-              </button>
-              <button
-                onClick={() => onMovePlayer(p.id, 'down')}
-                disabled={i === players.length - 1}
-                aria-label={`Move ${p.name} down`}
-                className="w-8 h-8 rounded-full bg-background font-bold text-sm disabled:opacity-25"
-              >
-                ▼
-              </button>
+        {orderedPlayers.map((p, i) => {
+          const isDragging = draggingId === p.id;
+          return (
+            <li
+              key={p.id}
+              ref={(el) => {
+                if (el) rowRefs.current.set(p.id, el);
+                else rowRefs.current.delete(p.id);
+              }}
+              onPointerDown={(e) => handlePointerDown(p.id, e)}
+              onPointerMove={handlePointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              style={{
+                touchAction: 'none',
+                transform: isDragging ? `translateY(${dragOffset}px) scale(1.03)` : undefined,
+                zIndex: isDragging ? 10 : undefined,
+              }}
+              className={`animate-pop-in flex items-center justify-between rounded-2xl bg-card px-4 py-3 shadow select-none cursor-grab active:cursor-grabbing ${
+                isDragging ? 'shadow-xl relative' : ''
+              }`}
+            >
+              <span className="flex items-center gap-2 font-semibold text-lg">
+                <span className="opacity-30 text-sm">⠿</span>
+                {i + 1}. {p.name}
+              </span>
               <button
                 onClick={() => onRemovePlayer(p.id)}
                 aria-label={`Remove ${p.name}`}
-                className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold text-lg"
+                className="w-9 h-9 rounded-full bg-hot/10 text-hot font-bold text-lg shrink-0"
               >
                 ×
               </button>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
         {players.length === 0 && (
           <p className="text-center opacity-50 py-4">Add at least 1 player to start.</p>
         )}

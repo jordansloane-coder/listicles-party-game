@@ -117,7 +117,7 @@ export default function Home() {
           players={state.players}
           onAddPlayer={(name) => dispatch({ type: 'ADD_PLAYER', name })}
           onRemovePlayer={(id) => dispatch({ type: 'REMOVE_PLAYER', id })}
-          onMovePlayer={(id, direction) => dispatch({ type: 'MOVE_PLAYER', id, direction })}
+          onReorderPlayers={(orderedIds) => dispatch({ type: 'REORDER_PLAYERS', orderedIds })}
           onStart={() => dispatch({ type: 'START_GAME', raunchy: settings.raunchyMode })}
           onClear={() => {
             clearGameState();
