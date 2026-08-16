@@ -1,16 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import type { Player } from '@/lib/types';
+import type { Player, PlayerRoundResult } from '@/lib/types';
 
 interface Props {
   players: Player[];
   category: string;
+  existingResults?: PlayerRoundResult[] | null;
   onSubmit: (scores: Record<string, number>) => void;
 }
 
-export default function ManualScoreScreen({ players, category, onSubmit }: Props) {
-  const [scores, setScores] = useState<Record<string, string>>({});
+export default function ManualScoreScreen({ players, category, existingResults, onSubmit }: Props) {
+  const isEditing = !!existingResults?.length;
+  const [scores, setScores] = useState<Record<string, string>>(() => {
+    if (!existingResults) return {};
+    const initial: Record<string, string> = {};
+    for (const r of existingResults) initial[r.playerId] = String(r.subtotal);
+    return initial;
+  });
 
   function setScore(playerId: string, value: string) {
     setScores((prev) => ({ ...prev, [playerId]: value }));
@@ -29,8 +36,12 @@ export default function ManualScoreScreen({ players, category, onSubmit }: Props
   return (
     <div className="flex-1 flex flex-col px-5 py-8 gap-5 max-w-md mx-auto w-full">
       <div className="text-center animate-pop-in">
-        <h2 className="text-2xl font-extrabold">Scorecard</h2>
-        <p className="text-sm opacity-60">{category} — enter each player&apos;s total for this round</p>
+        {isEditing && (
+          <p className="text-sm font-bold uppercase tracking-wide text-hot mb-1">✎ Editing this round&apos;s scores</p>
+        )}
+        <p className="text-sm font-semibold uppercase tracking-wide text-electric mb-1">The category was</p>
+        <h2 className="text-2xl font-extrabold leading-tight">{category}</h2>
+        <p className="mt-2 text-sm opacity-60">Enter each player&apos;s total for this round</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -54,7 +65,7 @@ export default function ManualScoreScreen({ players, category, onSubmit }: Props
         onClick={handleSubmit}
         className="mt-auto w-full rounded-2xl bg-hot text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform"
       >
-        Save Scores →
+        {isEditing ? 'Update Scores →' : 'Save Scores →'}
       </button>
     </div>
   );

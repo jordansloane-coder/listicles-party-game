@@ -13,6 +13,7 @@ export type Action =
   | { type: 'END_WRITING'; mode: 'entry' | 'manualScore' }
   | { type: 'SUBMIT_ENTRY'; playerId: string; items: string[] }
   | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
+  | { type: 'EDIT_MANUAL_SCORES' }
   | { type: 'GO_TO_DICE' }
   | { type: 'ROLL_DICE'; face: DieFace }
   | { type: 'CONFIRM_DICE_WINNERS'; playerIds: string[]; nominations: Record<string, string> }
@@ -147,15 +148,20 @@ export function gameReducer(state: GameState, action: Action): GameState {
     }
 
     case 'SUBMIT_MANUAL_SCORES': {
+      // Undo whatever this round previously contributed before adding the new
+      // values, so re-submitting after EDIT_MANUAL_SCORES corrects totals
+      // instead of double-counting (previous is [] on a first-time submit).
+      const previous = state.currentRoundResults ?? [];
       const results = state.players.map((p) => ({
         playerId: p.id,
         items: [],
         subtotal: action.scores[p.id] ?? 0,
       }));
-      const players = state.players.map((p) => ({
-        ...p,
-        totalScore: p.totalScore + (action.scores[p.id] ?? 0),
-      }));
+      const players = state.players.map((p) => {
+        const prevSubtotal = previous.find((r) => r.playerId === p.id)?.subtotal ?? 0;
+        const nextSubtotal = action.scores[p.id] ?? 0;
+        return { ...p, totalScore: p.totalScore - prevSubtotal + nextSubtotal };
+      });
       return {
         ...state,
         players,
@@ -163,6 +169,11 @@ export function gameReducer(state: GameState, action: Action): GameState {
         lastRoundWasManual: true,
         phase: 'dice',
       };
+    }
+
+    case 'EDIT_MANUAL_SCORES': {
+      if (!state.lastRoundWasManual || state.phase !== 'dice') return state;
+      return { ...state, phase: 'manualScore', diceFace: null };
     }
 
     case 'GO_TO_DICE':

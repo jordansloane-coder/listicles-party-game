@@ -7,22 +7,28 @@ import { playDiceRoll } from '@/lib/sound';
 
 interface Props {
   players: Player[];
+  category: string;
   diceFace: DieFace | null;
   soundEnabled: boolean;
   currentRoundResults: PlayerRoundResult[] | null;
+  canEditScores: boolean;
   onRoll: (face: DieFace) => void;
   onConfirmWinners: (playerIds: string[], nominations: Record<string, string>) => void;
   onSkip: () => void;
+  onEditScores: () => void;
 }
 
 export default function DiceScreen({
   players,
+  category,
   diceFace,
   soundEnabled,
   currentRoundResults,
+  canEditScores,
   onRoll,
   onConfirmWinners,
   onSkip,
+  onEditScores,
 }: Props) {
   const [rolling, setRolling] = useState(false);
   const [displayFace, setDisplayFace] = useState<DieFace>(diceFace ?? 'Hot');
@@ -67,6 +73,12 @@ export default function DiceScreen({
   return (
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-6 max-w-md mx-auto w-full">
       <h2 className="text-2xl font-extrabold text-center">Bonus Die</h2>
+      <p className="text-center text-sm opacity-50 -mt-4">{category}</p>
+      {canEditScores && (
+        <button onClick={onEditScores} className="text-sm font-bold text-hot underline -mt-2">
+          ✎ Fix a score for this round
+        </button>
+      )}
       {!diceFace && (
         <p className="text-center opacity-60 text-sm">
           Roll the die, then everyone picks one of their scoring answers that best fits the result. The group votes

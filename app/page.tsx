@@ -168,6 +168,7 @@ export default function Home() {
         <ManualScoreScreen
           players={state.players}
           category={state.currentCategory}
+          existingResults={state.currentRoundResults}
           onSubmit={(scores) => dispatch({ type: 'SUBMIT_MANUAL_SCORES', scores })}
         />
       )}
@@ -186,9 +187,11 @@ export default function Home() {
       {state.phase === 'dice' && (
         <DiceScreen
           players={state.players}
+          category={state.currentCategory ?? ''}
           diceFace={state.diceFace}
           soundEnabled={state.soundEnabled}
           currentRoundResults={state.currentRoundResults}
+          canEditScores={state.lastRoundWasManual}
           onRoll={(face) => {
             unlockSound();
             dispatch({ type: 'ROLL_DICE', face });
@@ -197,6 +200,7 @@ export default function Home() {
             dispatch({ type: 'CONFIRM_DICE_WINNERS', playerIds, nominations })
           }
           onSkip={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
+          onEditScores={() => dispatch({ type: 'EDIT_MANUAL_SCORES' })}
         />
       )}
 
