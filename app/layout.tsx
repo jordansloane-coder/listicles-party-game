@@ -63,11 +63,13 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       {/* Safari reserves a strip below the visible viewport for its own UI and
           tints it to match the page's body background for a seamless look —
           it samples that BEFORE our red splash screen paints over it, so it
-          was showing the app's normal cream instead. Starting with #cb0707
-          (sampled directly from splash.png's own bottom edge, not just a
-          rough theme-color guess) and switching to the real background once
-          the splash is dismissed (see app/page.tsx) fixes the mismatch. */}
-      <body className="min-h-full flex flex-col bg-background text-foreground" style={{ backgroundColor: '#cb0707' }}>
+          was showing the app's normal cream instead. #3d0202 is the splash's
+          own bottom-edge pixel color (#cb0707) composited with the
+          from-black/70 gradient that sits over it near the Play button —
+          not just the raw image color, which was a visibly brighter
+          mismatch right at that seam. Switches to the real background once
+          the splash is dismissed (see app/page.tsx). */}
+      <body className="min-h-full flex flex-col bg-background text-foreground" style={{ backgroundColor: '#3d0202' }}>
         {children}
       </body>
     </html>
