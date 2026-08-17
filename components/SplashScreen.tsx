@@ -8,7 +8,7 @@ interface Props {
 
 export default function SplashScreen({ onPlay }: Props) {
   return (
-    <div className="fixed inset-0 h-dvh w-screen flex flex-col bg-hot-deep">
+    <div className="relative flex-1 flex flex-col min-h-dvh w-full bg-hot-deep overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`${BASE_PATH}/splash.png`} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div
