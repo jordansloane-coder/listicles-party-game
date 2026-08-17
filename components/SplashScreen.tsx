@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 interface Props {
@@ -7,8 +9,26 @@ interface Props {
 }
 
 export default function SplashScreen({ onPlay }: Props) {
+  // If the page is even a hair taller than the viewport (sub-pixel rounding,
+  // the Safari toolbar collapsing, whatever), iOS Safari allows a tiny
+  // rubber-band bounce at the bottom edge that reveals the app's normal
+  // background color underneath — showing up as a persistent-looking gap
+  // below this screen. Locking scroll while the splash is up rules that out
+  // regardless of the actual cause.
+  useEffect(() => {
+    const html = document.documentElement;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    html.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  }, []);
+
   return (
-    <div className="relative flex-1 flex flex-col min-h-dvh w-full bg-hot-deep overflow-hidden">
+    <div className="relative flex-1 flex flex-col h-dvh w-full bg-hot-deep overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`${BASE_PATH}/splash.png`} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div
