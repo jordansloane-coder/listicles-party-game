@@ -60,7 +60,15 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
             sees, so it needs to be fetched before React even hydrates. */}
         <link rel="preload" as="image" href={`${basePath}/splash.png`} fetchPriority="high" />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
+      {/* Safari reserves a strip below the visible viewport for its own UI and
+          tints it to match the page's body background for a seamless look —
+          it samples that BEFORE our red splash screen paints over it, so it
+          was showing the app's normal cream instead. Starting red (matching
+          the splash) and switching to the real background once the splash is
+          dismissed (see app/page.tsx) fixes the mismatch. */}
+      <body className="min-h-full flex flex-col bg-background text-foreground" style={{ backgroundColor: '#e0201b' }}>
+        {children}
+      </body>
     </html>
   );
 }

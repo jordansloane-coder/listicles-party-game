@@ -108,7 +108,16 @@ export default function Home() {
   }
 
   if (showSplash) {
-    return <SplashScreen onPlay={() => setShowSplash(false)} />;
+    return (
+      <SplashScreen
+        onPlay={() => {
+          // Hand background-color control back to the normal bg-background
+          // class now that we're past the red splash (see app/layout.tsx).
+          document.body.style.backgroundColor = '';
+          setShowSplash(false);
+        }}
+      />
+    );
   }
 
   if (appMode === 'online') {
