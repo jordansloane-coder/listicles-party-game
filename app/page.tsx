@@ -207,7 +207,7 @@ export default function Home() {
           diceFace={state.diceFace}
           soundEnabled={state.soundEnabled}
           currentRoundResults={state.currentRoundResults}
-          canEditScores={state.lastRoundWasManual}
+          canEditScores={true}
           onRoll={(face) => {
             unlockSound();
             dispatch({ type: 'ROLL_DICE', face });
@@ -216,7 +216,7 @@ export default function Home() {
             dispatch({ type: 'CONFIRM_DICE_WINNERS', playerIds, nominations })
           }
           onSkip={() => dispatch({ type: 'SKIP_DICE_BONUS' })}
-          onEditScores={() => dispatch({ type: 'EDIT_MANUAL_SCORES' })}
+          onEditScores={() => dispatch({ type: 'EDIT_ROUND_SCORES' })}
         />
       )}
 

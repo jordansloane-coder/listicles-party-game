@@ -3,7 +3,7 @@
 // project configured yet never throws; isFirebaseConfigured() is what the UI
 // checks before offering the "play online" entry point at all.
 import { type FirebaseApp, initializeApp, getApps } from 'firebase/app';
-import { type Auth, getAuth, signInAnonymously } from 'firebase/auth';
+import { type Auth, getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { type Database, getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
@@ -43,6 +43,21 @@ export function getFirebaseDb(): Database {
 export async function ensureSignedIn(): Promise<string> {
   if (!auth) auth = getAuth(getFirebaseApp());
   if (auth.currentUser) return auth.currentUser.uid;
+
+  // Firebase restores a persisted anonymous session from IndexedDB
+  // asynchronously — currentUser is null for a moment even when a session
+  // already exists. Waiting for that first auth-state event (instead of
+  // immediately minting a new user) is what makes a refreshed/relaunched
+  // tab keep the same uid, and stay bound to the same player slot in an
+  // in-progress online room.
+  const restored = await new Promise<string | null>((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth!, (user) => {
+      unsubscribe();
+      resolve(user?.uid ?? null);
+    });
+  });
+  if (restored) return restored;
+
   const result = await signInAnonymously(auth);
   return result.user.uid;
 }

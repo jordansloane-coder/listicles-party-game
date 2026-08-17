@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { DIE_FACE_EMOJI, DIE_FACES, rollDie } from '@/lib/dice';
 import type { DieFace } from '@/lib/types';
 import type { OnlineRoom } from '@/lib/onlineTypes';
-import { confirmDiceWinners, rollDice, skipDiceBonus } from '@/lib/onlineRoom';
+import { confirmDiceWinners, returnToScoring, rollDice, skipDiceBonus } from '@/lib/onlineRoom';
 import { playDiceRoll } from '@/lib/sound';
 
 interface Props {
@@ -56,6 +56,11 @@ export default function OnlineDiceScreen({ room, isHost, soundEnabled }: Props) 
     <div className="flex-1 flex flex-col items-center px-5 py-8 gap-6 max-w-md mx-auto w-full">
       <h2 className="text-2xl font-extrabold text-center">Bonus Die</h2>
       <p className="text-center text-sm opacity-50 -mt-4">{room.currentCategory}</p>
+      {isHost && (
+        <button onClick={() => void returnToScoring(room.code)} className="text-sm font-bold text-hot underline -mt-2">
+          ✎ Fix a score for this round
+        </button>
+      )}
       {!diceFace && (
         <p className="text-center opacity-60 text-sm">
           Roll the die, then everyone picks one of their scoring answers that best fits the result. The group votes

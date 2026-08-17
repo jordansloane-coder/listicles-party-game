@@ -252,6 +252,11 @@ export async function goToDice(code: string): Promise<void> {
   await update(roomRef(code), { phase: 'dice' });
 }
 
+// Lets the host back out of the dice round to fix a scoring mistake.
+export async function returnToScoring(code: string): Promise<void> {
+  await update(roomRef(code), { phase: 'scoring', diceFace: null, diceNominations: {}, diceBonusPlayerIds: [] });
+}
+
 export async function rollDice(code: string, face: DieFace): Promise<void> {
   await update(roomRef(code), { diceFace: face });
 }

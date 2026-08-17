@@ -14,7 +14,7 @@ export type Action =
   | { type: 'END_WRITING'; mode: 'entry' | 'manualScore' }
   | { type: 'SUBMIT_ENTRY'; playerId: string; items: string[] }
   | { type: 'SUBMIT_MANUAL_SCORES'; scores: Record<string, number> }
-  | { type: 'EDIT_MANUAL_SCORES' }
+  | { type: 'EDIT_ROUND_SCORES' }
   | { type: 'SET_ITEM_COUNTS'; playerId: string; itemIndex: number; counts: boolean }
   | { type: 'SUBMIT_PLAYER_SCORE'; playerId: string }
   | { type: 'GO_TO_DICE' }
@@ -159,7 +159,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'SUBMIT_MANUAL_SCORES': {
       // Undo whatever this round previously contributed before adding the new
-      // values, so re-submitting after EDIT_MANUAL_SCORES corrects totals
+      // values, so re-submitting after EDIT_ROUND_SCORES corrects totals
       // instead of double-counting (previous is [] on a first-time submit).
       const previous = state.currentRoundResults ?? [];
       const results = state.players.map((p) => ({
@@ -183,9 +183,11 @@ export function gameReducer(state: GameState, action: Action): GameState {
       };
     }
 
-    case 'EDIT_MANUAL_SCORES': {
-      if (!state.lastRoundWasManual || state.phase !== 'dice') return state;
-      return { ...state, phase: 'manualScore', diceFace: null };
+    // Lets the host back out of the dice round to fix a mistake — routes to
+    // whichever scoring screen this round actually used.
+    case 'EDIT_ROUND_SCORES': {
+      if (state.phase !== 'dice') return state;
+      return { ...state, phase: state.lastRoundWasManual ? 'manualScore' : 'scoring', diceFace: null };
     }
 
     // Host reviewing one player's answers taps counts/doesn't per item; this
@@ -286,9 +288,24 @@ export function gameReducer(state: GameState, action: Action): GameState {
     case 'JUSTIN_GOT_PISSED':
       return { ...state, justinPissedCount: state.justinPissedCount + 1 };
 
-    case 'LOAD_STATE':
-      // Old persisted states from before this field existed won't have it.
-      return { ...action.state, justinPissedCount: action.state.justinPissedCount ?? 0 };
+    case 'LOAD_STATE': {
+      // Old persisted states from before today's scoring rewrite won't have
+      // appliedSubtotal/submitted on currentRoundResults — backfill them as
+      // "already applied" (true for the old auto-scoring model, where a
+      // saved subtotal always meant it was already added to totalScore) so
+      // a leftover save can't NaN-corrupt scores via SUBMIT_PLAYER_SCORE.
+      const currentRoundResults =
+        action.state.currentRoundResults?.map((r) => ({
+          ...r,
+          appliedSubtotal: r.appliedSubtotal ?? r.subtotal ?? 0,
+          submitted: r.submitted ?? true,
+        })) ?? null;
+      return {
+        ...action.state,
+        justinPissedCount: action.state.justinPissedCount ?? 0,
+        currentRoundResults,
+      };
+    }
 
     default:
       return state;

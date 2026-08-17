@@ -143,7 +143,18 @@ export default function ScoringScreen({
 
       <div className="mt-auto w-full flex flex-col gap-2">
         <button
-          onClick={onContinue}
+          onClick={() => {
+            const unreviewed = players.filter((p) => !results.find((r) => r.playerId === p.id)?.submitted);
+            if (
+              unreviewed.length > 0 &&
+              !window.confirm(
+                `${unreviewed.map((p) => p.name).join(', ')} ${unreviewed.length === 1 ? "hasn't" : "haven't"} been reviewed yet — they'll score 0 for this round. Continue anyway?`
+              )
+            ) {
+              return;
+            }
+            onContinue();
+          }}
           className="w-full rounded-2xl bg-hot text-white font-extrabold text-xl py-5 shadow-lg active:scale-95 transition-transform"
         >
           Submit Scores →
