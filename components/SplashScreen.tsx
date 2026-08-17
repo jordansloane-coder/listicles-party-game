@@ -28,7 +28,7 @@ export default function SplashScreen({ onPlay }: Props) {
   }, []);
 
   return (
-    <div className="relative flex-1 flex flex-col h-dvh w-full bg-hot-deep overflow-hidden">
+    <div className="relative flex-1 flex flex-col w-full bg-hot-deep overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`${BASE_PATH}/splash.png`} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div
