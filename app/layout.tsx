@@ -56,6 +56,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
             already loaded by the time someone first taps the button, instead of
             popping in a second late while the fireworks (pure CSS) show instantly. */}
         <link rel="preload" as="image" href={`${basePath}/justin-mascot.png`} />
+        {/* Same idea for the splash screen — it's the very first thing anyone
+            sees, so it needs to be fetched before React even hydrates. */}
+        <link rel="preload" as="image" href={`${basePath}/splash.png`} fetchPriority="high" />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
     </html>

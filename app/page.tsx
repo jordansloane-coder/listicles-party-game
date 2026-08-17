@@ -21,6 +21,7 @@ import HistoryPanel from '@/components/HistoryPanel';
 import RulesPanel from '@/components/RulesPanel';
 import PrintScorecardPanel from '@/components/PrintScorecardPanel';
 import OnlineGame from '@/components/online/OnlineGame';
+import SplashScreen from '@/components/SplashScreen';
 
 function rankPlayers(players: Player[]): BankedGame['results'] {
   const sorted = [...players].sort((a, b) => b.totalScore - a.totalScore);
@@ -32,6 +33,7 @@ function rankPlayers(players: Player[]): BankedGame['results'] {
 }
 
 export default function Home() {
+  const [showSplash, setShowSplash] = useState(true);
   const [appMode, setAppMode] = useState<'solo' | 'online'>('solo');
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
   const hydrated = useRef(false);
@@ -103,6 +105,10 @@ export default function Home() {
     });
     setHistory(loadHistory());
     dispatch({ type: 'END_GAME' });
+  }
+
+  if (showSplash) {
+    return <SplashScreen onPlay={() => setShowSplash(false)} />;
   }
 
   if (appMode === 'online') {
