@@ -52,6 +52,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     <html lang="en" className={`${baloo.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: darkModeInit }} />
+        {/* Warms the browser cache for the Justin-pissed takeover mascot so it's
+            already loaded by the time someone first taps the button, instead of
+            popping in a second late while the fireworks (pure CSS) show instantly. */}
+        <link rel="preload" as="image" href={`${basePath}/justin-mascot.png`} />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
     </html>
