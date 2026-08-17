@@ -6,6 +6,10 @@
         ".write": "auth != null"
       }
     },
+    "roomIndex": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
     ".read": false,
     ".write": false
   }

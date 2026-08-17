@@ -9,9 +9,18 @@ import { DEFAULT_ONLINE_SETTINGS, type OnlinePlayer, type OnlineRoom, type Onlin
 
 const MAX_PLAYERS = 8;
 const MAX_CREATE_ATTEMPTS = 5;
+const ROOM_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // 2 weeks
 
 function roomRef(code: string) {
   return ref(getFirebaseDb(), `rooms/${code}`);
+}
+
+// A small parallel index of code -> createdAt, kept in sync with rooms/.
+// Realtime Database has no built-in TTL and the security rules don't allow
+// listing all of rooms/ (each room is only readable if you already know its
+// code), so this is what sweepStaleRooms() scans instead.
+function roomIndexRef(code: string) {
+  return ref(getFirebaseDb(), `roomIndex/${code}`);
 }
 
 function pickCategory(used: string[], raunchy: boolean): { category: string; usedCategories: string[] } {
@@ -69,7 +78,7 @@ export async function createRoom(
       diceBonusPlayerIds: [],
       justinPissedCount: 0,
     };
-    await set(roomRef(code), room);
+    await Promise.all([set(roomRef(code), room), set(roomIndexRef(code), room.createdAt)]);
     onDisconnect(ref(db, `rooms/${code}/players/${playerId}/connected`)).set(false);
     return { code, playerId };
   }
@@ -303,5 +312,29 @@ export async function justinGotPissed(code: string): Promise<void> {
 }
 
 export async function closeRoom(code: string): Promise<void> {
-  await set(roomRef(code), null);
+  await Promise.all([set(roomRef(code), null), set(roomIndexRef(code), null)]);
+}
+
+// Best-effort cleanup for rooms nobody ever explicitly closed. Realtime
+// Database's free tier has no server-side TTL/cron, and the security rules
+// don't allow listing rooms/ itself (only reading a specific code you
+// already know) — so instead this scans the small roomIndex and deletes
+// anything older than two weeks. Runs opportunistically whenever anyone
+// opens the online-play screen (see OnlineEntryScreen); any single run is
+// enough to keep the database from growing unbounded, and a run that never
+// happens (offline, rules not yet updated, etc.) just means it happens next
+// time — nothing depends on it succeeding.
+export async function sweepStaleRooms(): Promise<void> {
+  try {
+    const indexSnap = await get(ref(getFirebaseDb(), 'roomIndex'));
+    if (!indexSnap.exists()) return;
+    const index = indexSnap.val() as Record<string, number>;
+    const cutoff = Date.now() - ROOM_MAX_AGE_MS;
+    const staleCodes = Object.entries(index)
+      .filter(([, createdAt]) => createdAt < cutoff)
+      .map(([code]) => code);
+    await Promise.all(staleCodes.map((code) => closeRoom(code)));
+  } catch {
+    // Offline, rules not updated yet, etc. — safe to skip.
+  }
 }

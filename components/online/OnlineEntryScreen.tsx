@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isFirebaseConfigured } from '@/lib/firebase';
-import { createRoom, joinRoom } from '@/lib/onlineRoom';
+import { createRoom, joinRoom, sweepStaleRooms } from '@/lib/onlineRoom';
 import { normalizeRoomCode } from '@/lib/roomCode';
 
 interface Props {
@@ -18,6 +18,11 @@ export default function OnlineEntryScreen({ onJoined, onBack }: Props) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Piggybacks room cleanup on normal app usage — see sweepStaleRooms().
+  useEffect(() => {
+    if (isFirebaseConfigured()) void sweepStaleRooms();
+  }, []);
 
   if (!isFirebaseConfigured()) {
     return (
